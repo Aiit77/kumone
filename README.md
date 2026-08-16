@@ -12,16 +12,16 @@ SwiftUI 编写 · 零第三方依赖 · 直连网易云真实 API
 [![Swift](https://img.shields.io/badge/Swift-6.2-F05138?logo=swift&logoColor=white)](Package.swift)
 [![License](https://img.shields.io/badge/license-LGPL--3.0--only-orange)](LICENSE)
 
-<img src="docs/screenshot-home.png" width="880" alt="推荐" />
-
 <table>
   <tr>
+    <td><img src="docs/screenshot-home.png" alt="推荐" /></td>
     <td><img src="docs/screenshot-nowplaying.png" alt="沉浸播放页" /></td>
+  </tr>
+  <tr>
     <td><img src="docs/screenshot-daily.png" alt="每日推荐" /></td>
+    <td><img src="docs/screenshot-search.png" alt="搜索" /></td>
   </tr>
 </table>
-
-<img src="docs/screenshot-search.png" width="880" alt="搜索" />
 
 </div>
 
