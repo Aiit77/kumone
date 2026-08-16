@@ -3,6 +3,9 @@ import SwiftUI
 @MainActor
 @Observable
 final class HomeViewModel {
+    /// Shared so the loaded page survives sidebar switches (no skeleton flash).
+    static let shared = HomeViewModel()
+
     enum State {
         case idle, loading, loaded
         case error(String)
@@ -64,7 +67,7 @@ struct HomeView: View {
     @Environment(AccountStore.self) private var account
     @Environment(PlayerService.self) private var player
     @Environment(\.openLogin) private var openLogin
-    @State private var model = HomeViewModel()
+    @State private var model = HomeViewModel.shared
 
     var body: some View {
         ScrollView {

@@ -3,6 +3,9 @@ import SwiftUI
 @MainActor
 @Observable
 final class ExploreViewModel {
+    /// Shared so category selection and loaded pages survive sidebar switches.
+    static let shared = ExploreViewModel()
+
     static let categories: [String] = [
         "全部", "推荐歌单", "精品歌单", "排行榜", "官方",
         "华语", "流行", "摇滚", "民谣", "电子", "轻音乐", "说唱", "爵士", "古典",
@@ -72,7 +75,7 @@ final class ExploreViewModel {
 }
 
 struct ExploreView: View {
-    @State private var model = ExploreViewModel()
+    @State private var model = ExploreViewModel.shared
     @Environment(PlayerService.self) private var player
 
     var body: some View {
