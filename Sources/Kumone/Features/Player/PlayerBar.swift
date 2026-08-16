@@ -50,7 +50,9 @@ struct PlayerBar: View {
 
     private var artworkButton: some View {
         Button {
-            player.activePanel = player.activePanel == .lyrics ? nil : .lyrics
+            withAnimation(AppAnimation.smooth) {
+                player.showNowPlaying = true
+            }
         } label: {
             CachedAsyncImage(url: player.currentTrack?.album.picUrl?.resizedImageURL(128))
                 .frame(width: 38, height: 38)
@@ -62,7 +64,7 @@ struct PlayerBar: View {
                 .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
         }
         .buttonStyle(.pressable)
-        .help("歌词")
+        .help("打开播放页")
     }
 
     // MARK: - Center: transport + scrubber
@@ -150,6 +152,10 @@ struct PlayerBar: View {
                let quality = AudioQuality(rawValue: level) {
                 QualityTag(text: quality.badge)
                     .padding(.trailing, 2)
+            } else if !compact, player.unblockSource != nil {
+                QualityTag(text: "音源")
+                    .padding(.trailing, 2)
+                    .help("来自 \(player.unblockSource ?? "")")
             }
             PlayerIconButton(
                 icon: "quote.bubble", size: 13,

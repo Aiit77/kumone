@@ -63,6 +63,7 @@ final class SettingsManager {
         static let showTranslation = "settings.showLyricsTranslation"
         static let volume = "settings.volume"
         static let fmMode = "settings.fmMode"
+        static let unblock = "settings.enableUnblock"
     }
 
     var audioQuality: AudioQuality {
@@ -77,10 +78,16 @@ final class SettingsManager {
         didSet { UserDefaults.standard.set(showLyricsTranslation, forKey: Keys.showTranslation) }
     }
 
+    /// Resolve gray tracks from third-party sources (UnblockNeteaseMusic-style).
+    var enableUnblock: Bool {
+        didSet { UserDefaults.standard.set(enableUnblock, forKey: Keys.unblock) }
+    }
+
     private init() {
         let defaults = UserDefaults.standard
         audioQuality = defaults.string(forKey: Keys.quality).flatMap(AudioQuality.init) ?? .exhigh
         appearance = defaults.string(forKey: Keys.appearance).flatMap(AppAppearance.init) ?? .auto
         showLyricsTranslation = defaults.object(forKey: Keys.showTranslation) as? Bool ?? true
+        enableUnblock = defaults.object(forKey: Keys.unblock) as? Bool ?? true
     }
 }

@@ -24,6 +24,12 @@ struct MainWindow: View {
         .sheet(isPresented: $showLogin) {
             LoginSheet()
         }
+        .overlay {
+            if player.showNowPlaying {
+                NowPlayingView()
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
         .overlay(alignment: .top) {
             if let toast = toasts.current {
                 ToastView(toast: toast)
@@ -31,6 +37,7 @@ struct MainWindow: View {
                     .padding(.top, 12)
             }
         }
+        .animation(AppAnimation.smooth, value: player.showNowPlaying)
         .animation(.spring(duration: 0.3), value: toasts.current)
     }
 

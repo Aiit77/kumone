@@ -52,6 +52,8 @@ struct Track: Codable, Hashable, Identifiable {
     let noCopyright: Bool
     /// Cloud-disk song marker (`pc` field present).
     let isCloud: Bool
+    /// Some endpoints (cloudsearch, FM) embed the privilege in the track itself.
+    let embeddedPrivilege: TrackPrivilege?
 
     var artistNames: String { artists.map(\.name).joined(separator: " / ") }
     var duration: TimeInterval { TimeInterval(durationMS) / 1000 }
@@ -63,7 +65,7 @@ struct Track: Codable, Hashable, Identifiable {
         case al, album
         case dt, duration
         case alia, alias
-        case tns, fee, mv, no, cd, noCopyrightRcmd, pc
+        case tns, fee, mv, no, cd, noCopyrightRcmd, pc, privilege
     }
 
     init(from decoder: Decoder) throws {
@@ -87,6 +89,7 @@ struct Track: Codable, Hashable, Identifiable {
         noCopyright = c.contains(.noCopyrightRcmd)
             && (try? c.decodeNil(forKey: .noCopyrightRcmd)) == false
         isCloud = c.contains(.pc) && (try? c.decodeNil(forKey: .pc)) == false
+        embeddedPrivilege = try? c.decode(TrackPrivilege.self, forKey: .privilege)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -134,13 +137,15 @@ enum TrackPlayability: Hashable {
 }
 
 extension Track {
-    /// Mirrors YesPlayMusic's `isTrackPlayable` decision chain.
+    /// Mirrors YesPlayMusic's `isTrackPlayable` decision chain,
+    /// with the VIP check widened to cover 黑胶 SVIP (vipType 110 etc).
     func playability(privilege: TrackPrivilege?, isLoggedIn: Bool, vipType: Int) -> TrackPlayability {
+        let privilege = privilege ?? embeddedPrivilege
         if let pl = privilege?.pl, pl > 0 { return .playable }
         if isLoggedIn, privilege?.cs == true { return .playable }
         let effectiveFee = privilege?.fee ?? fee
         if effectiveFee == 1 {
-            return vipType == 11 ? .playable : .vipOnly
+            return vipType > 0 ? .playable : .vipOnly
         }
         if effectiveFee == 4 { return .paidAlbum }
         if noCopyright { return .noCopyright }

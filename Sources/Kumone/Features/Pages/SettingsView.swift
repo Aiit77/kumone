@@ -17,6 +17,10 @@ struct SettingsView: View {
                 Text("无损与 Hi-Res 需要黑胶 VIP，未开通时自动回落到可用音质")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Toggle("灰色歌曲解锁", isOn: $settings.enableUnblock)
+                Text("无版权 / 下架歌曲自动从第三方音源（酷我、酷狗等）匹配播放")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section("外观") {

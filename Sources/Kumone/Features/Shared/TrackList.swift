@@ -259,7 +259,9 @@ struct TrackListView: View {
     }
 
     private func playability(of track: Track) -> TrackPlayability {
-        track.playability(
+        // With unblock enabled, gray tracks resolve from third-party sources.
+        if SettingsManager.shared.enableUnblock { return .playable }
+        return track.playability(
             privilege: privileges[track.id],
             isLoggedIn: account.isLoggedIn,
             vipType: account.vipType

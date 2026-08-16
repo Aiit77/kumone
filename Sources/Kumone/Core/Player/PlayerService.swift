@@ -54,6 +54,7 @@ final class PlayerService {
     private(set) var isBuffering = false
     private(set) var duration: TimeInterval = 0
     private(set) var servedQuality: String?
+    private(set) var unblockSource: String?
     private(set) var isTrial = false
     var progress: TimeInterval = 0
     var repeatMode: RepeatMode = .off {
@@ -72,6 +73,7 @@ final class PlayerService {
     private(set) var fmUpcoming: [Track] = []
     private(set) var lyrics: ParsedLyrics?
     var activePanel: RightPanel?
+    var showNowPlaying = false
 
     /// The list the player is walking through (shuffled or ordered).
     var activeQueue: [Track] { shuffleEnabled ? shuffledQueue : queue }
@@ -360,6 +362,7 @@ final class PlayerService {
         progress = 0
         duration = track.duration
         servedQuality = nil
+        unblockSource = nil
         isTrial = false
         lyrics = nil
         scrobbled = false
@@ -386,8 +389,24 @@ final class PlayerService {
         }
         guard generation == resolveGeneration else { return }
 
-        guard let data, let urlString = data.url,
-              let url = URL(string: urlString.replacingOccurrences(of: "http://", with: "https://")) else {
+        var resolvedURL: URL?
+        if let urlString = data?.url {
+            resolvedURL = URL(string: urlString.replacingOccurrences(of: "http://", with: "https://"))
+        }
+
+        // NetEase refused — try third-party sources (UnblockNeteaseMusic-style).
+        if resolvedURL == nil || data?.freeTrialInfo != nil, SettingsManager.shared.enableUnblock {
+            if let unblocked = await UnblockService.resolve(track) {
+                guard generation == resolveGeneration else { return }
+                resolvedURL = unblocked.url
+                unblockSource = unblocked.source
+                data = nil
+                ToastCenter.shared.show("已使用第三方音源：\(unblocked.source)")
+            }
+        }
+        guard generation == resolveGeneration else { return }
+
+        guard let url = resolvedURL else {
             consecutiveFailures += 1
             let reason = track.playability(privilege: nil,
                                            isLoggedIn: AccountStore.shared.isLoggedIn,
@@ -402,8 +421,8 @@ final class PlayerService {
         }
 
         consecutiveFailures = 0
-        servedQuality = data.level
-        if data.freeTrialInfo != nil {
+        servedQuality = data?.level
+        if data?.freeTrialInfo != nil {
             isTrial = true
             ToastCenter.shared.show("VIP 歌曲，当前为试听片段")
         }
@@ -423,8 +442,8 @@ final class PlayerService {
         engine.play()
         isPlaying = true
 
-        if data.time > 0 {
-            duration = TimeInterval(data.time) / 1000
+        if let time = data?.time, time > 0 {
+            duration = TimeInterval(time) / 1000
             NowPlayingManager.shared.updateMetadata(for: track, duration: duration)
         }
     }
