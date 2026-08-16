@@ -81,16 +81,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Space toggles play/pause unless a text field is being edited.
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            guard event.keyCode == 49,
-                  event.modifierFlags.intersection([.command, .option, .control, .shift]).isEmpty,
-                  !(NSApp.keyWindow?.firstResponder is NSText),
-                  !(NSApp.keyWindow?.firstResponder is NSTextView) else {
-                return event
+            let noModifiers = event.modifierFlags
+                .intersection([.command, .option, .control, .shift]).isEmpty
+            let editingText = NSApp.keyWindow?.firstResponder is NSText
+                || NSApp.keyWindow?.firstResponder is NSTextView
+
+            // Space: play/pause (unless typing)
+            if event.keyCode == 49, noModifiers, !editingText {
+                Task { @MainActor in
+                    PlayerService.shared.togglePlayPause()
+                }
+                return nil
             }
-            Task { @MainActor in
-                PlayerService.shared.togglePlayPause()
+            // Esc: close the immersive now-playing page
+            if event.keyCode == 53, noModifiers, MainActor.assumeIsolated({ PlayerService.shared.showNowPlaying }) {
+                Task { @MainActor in
+                    PlayerService.shared.showNowPlaying = false
+                }
+                return nil
             }
-            return nil
+            return event
         }
     }
 
