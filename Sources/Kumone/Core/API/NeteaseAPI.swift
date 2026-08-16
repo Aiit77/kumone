@@ -125,7 +125,7 @@ enum NeteaseAPI {
     }
 
     struct CloudResponse: Decodable {
-        let data: [CloudSongItem]
+        let data: [CloudSongItem]?
         let hasMore: Bool?
         let size: String?
         let maxSize: String?
@@ -175,14 +175,16 @@ enum NeteaseAPI {
 
     struct RecommendSongsResponse: Decodable {
         struct Body: Decodable {
-            let dailySongs: [Track]
+            let dailySongs: [Track]?
         }
 
-        let data: Body
+        // New accounts with no listening history get `"data": null`.
+        let data: Body?
     }
 
     static func dailyRecommendSongs() async throws -> [Track] {
-        try await weapi(RecommendSongsResponse.self, "/v3/discovery/recommend/songs").data.dailySongs
+        let resp = try await weapi(RecommendSongsResponse.self, "/v3/discovery/recommend/songs")
+        return resp.data?.dailySongs ?? []
     }
 
     struct PlaylistDetailResponse: Decodable {
@@ -284,7 +286,7 @@ enum NeteaseAPI {
             let id: Int?
         }
 
-        let data: [Item]
+        let data: [Item]?
     }
 
     /// 心动模式 — generates a heartbeat-mode queue from a seed song in a playlist.
@@ -292,7 +294,7 @@ enum NeteaseAPI {
         let resp = try await weapi(IntelligenceResponse.self, "/playmode/intelligence/list",
                                    ["songId": songID, "type": "fromPlayOne",
                                     "playlistId": playlistID, "startMusicId": songID, "count": 1])
-        return resp.data.compactMap(\.songInfo)
+        return (resp.data ?? []).compactMap(\.songInfo)
     }
 
     // MARK: - Tracks
@@ -314,11 +316,11 @@ enum NeteaseAPI {
     }
 
     struct FMResponse: Decodable {
-        let data: [Track]
+        let data: [Track]?
     }
 
     static func personalFM() async throws -> [Track] {
-        try await weapi(FMResponse.self, "/v1/radio/get").data
+        try await weapi(FMResponse.self, "/v1/radio/get").data ?? []
     }
 
     static func fmTrash(id: Int) async throws {

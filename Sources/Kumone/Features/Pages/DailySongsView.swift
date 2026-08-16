@@ -23,6 +23,10 @@ struct DailySongsView: View {
                         Task { await load() }
                     }
                     .frame(minHeight: 300)
+                } else if tracks.isEmpty {
+                    EmptyStateView(icon: "calendar.badge.clock", title: "暂无每日推荐",
+                                   subtitle: "多听几首歌培养口味，每天 6:00 更新")
+                        .frame(minHeight: 300)
                 } else {
                     TrackListView(tracks: tracks, source: .daily)
                         .padding(.horizontal, Theme.Layout.contentInset - 10)

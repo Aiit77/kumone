@@ -149,7 +149,7 @@ struct CloudView: View {
     private func load() async {
         isLoading = items.isEmpty
         if let response = try? await NeteaseAPI.cloudSongs() {
-            items = response.data
+            items = response.data ?? []
             if let size = response.size, let max = response.maxSize,
                let sizeGB = Double(size), let maxGB = Double(max) {
                 sizeInfo = String(format: "已使用 %.1f GB / %.0f GB",

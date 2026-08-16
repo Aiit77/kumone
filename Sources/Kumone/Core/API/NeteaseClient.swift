@@ -12,7 +12,7 @@ enum NeteaseAPIError: LocalizedError {
         case .http(let status): return "网络错误 (\(status))"
         case .business(let code, let message): return message ?? "接口错误 (\(code))"
         case .needLogin: return "需要登录"
-        case .decoding(let detail): return "数据解析失败: \(detail)"
+        case .decoding: return "数据加载失败，请稍后重试"
         }
     }
 }
