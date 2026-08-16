@@ -5,6 +5,16 @@
 version section contains an `### English` part followed by a `### 简体中文`
 part. 段落格式：`## <版本号> - <日期>`。
 
+## 0.1.6 - 2026-08-16
+
+### English
+
+- Improved: the "+" button next to Created Playlists now anchors to the trailing edge aligned with the playlist rows, independent of header text length in any language
+
+### 简体中文
+
+- 改进：「创建的歌单」的加号按钮改为尾部锚定并与歌单行右缘对齐，位置不再受各语言标题长度影响
+
 ## 0.1.5 - 2026-08-16
 
 ### English

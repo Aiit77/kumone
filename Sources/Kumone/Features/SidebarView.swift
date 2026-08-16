@@ -40,9 +40,14 @@ struct SidebarView: View {
                             } label: {
                                 Image(systemName: "plus")
                                     .font(.system(size: 10, weight: .semibold))
+                                    .frame(width: 16, height: 16)
+                                    .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
                             .foregroundStyle(.secondary)
+                            // Align with the trailing edge of the playlist rows
+                            // (rows carry 6pt list inset + 8pt inner padding).
+                            .padding(.trailing, 14)
                         }
                     }
                 }

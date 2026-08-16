@@ -34,7 +34,7 @@ Built with SwiftUI · Talks directly to NetEase's real API · Sparkle auto-updat
 ## Features
 
 - 🔐 **QR code login** — scan with the NetEase Cloud Music app; cookies are persisted locally and auto-refreshed
-- 🏠 **Home** — daily recommendations, Personal FM, Heartbeat Mode, recommended playlists, charts, new albums, recommended artists
+- 🏠 **Home** — daily recommendations, Personal FM, Heartbeat Mode, recommended playlists, radar playlists (Personal Radar family, personalized per account), charts, new albums, recommended artists
 - 🧭 **Explore** — category playlists (curated / official / charts / mood) with infinite scrolling
 - 🎵 **Playback** — AVPlayer engine, Standard to Hi-Res quality (lossless with 黑胶 VIP, automatic fallback), shuffle / repeat one / repeat all, play-next queue, gray track detection
 - 🔓 **Gray track unblocking** — native implementation of UnblockNeteaseMusic's core sources (pyncmd / Kuwo / Kugou); unavailable or trial-only tracks automatically resolve from third-party sources
@@ -45,6 +45,7 @@ Built with SwiftUI · Talks directly to NetEase's real API · Sparkle auto-updat
 - ✏️ **Playlist management** — create / delete / subscribe playlists, add / remove tracks, heart songs
 - 🔍 **Search** — aggregate / songs / artists / albums / playlists, trending keyword placeholder
 - ⌨️ **System integration** — media keys / Control Center (Now Playing), scrobbling, playback queue restored across launches
+- 🌐 **Localization** — English and Simplified Chinese, following the system language; bilingual release notes in Sparkle updates
 
 ## Installation
 
