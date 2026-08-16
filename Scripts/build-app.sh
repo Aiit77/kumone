@@ -32,9 +32,25 @@ find "$BIN_PATH" -maxdepth 1 -name '*.bundle' -not -name '*Tests*' -print0 |
     cp -R "$bundle" "$APP_BUNDLE/Contents/Resources/"
   done
 
-# App icon
-if [ -f "$ROOT/Sources/Kumone/Resources/AppIcon.icns" ]; then
-  cp "$ROOT/Sources/Kumone/Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
+# App icon: compile the Icon Composer bundle into Assets.car and keep the
+# source bundle alongside for Liquid Glass light/dark rendering on macOS 26.
+ICON_SOURCE="$ROOT/AppIcon.icon"
+if [ -d "$ICON_SOURCE" ]; then
+  cp -R "$ICON_SOURCE" "$APP_BUNDLE/Contents/Resources/AppIcon.icon"
+  xcrun actool "$ICON_SOURCE" \
+    --compile "$APP_BUNDLE/Contents/Resources" \
+    --notices --warnings --errors \
+    --output-partial-info-plist "$BUILD_DIR/icon-partial.plist" \
+    --app-icon AppIcon \
+    --enable-on-demand-resources NO \
+    --development-region zh-Hans \
+    --target-device mac \
+    --minimum-deployment-target 15.0 \
+    --platform macosx >/dev/null
+  if [ ! -f "$APP_BUNDLE/Contents/Resources/Assets.car" ]; then
+    echo "ERROR: actool did not produce Assets.car" >&2
+    exit 1
+  fi
 fi
 
 printf 'APPL????' > "$APP_BUNDLE/Contents/PkgInfo"
@@ -48,7 +64,14 @@ cat > "$APP_BUNDLE/Contents/Info.plist" <<PLIST
 <dict>
     <key>CFBundleDevelopmentRegion</key><string>zh-Hans</string>
     <key>CFBundleExecutable</key><string>$APP_NAME</string>
-    <key>CFBundleIconFile</key><string>AppIcon</string>
+    <key>CFBundleIconName</key><string>AppIcon</string>
+    <key>CFBundleIcons</key>
+    <dict>
+        <key>CFBundlePrimaryIcon</key>
+        <dict>
+            <key>CFBundleIconName</key><string>AppIcon</string>
+        </dict>
+    </dict>
     <key>CFBundleIdentifier</key><string>$BUNDLE_ID</string>
     <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
     <key>CFBundleName</key><string>$APP_NAME</string>
