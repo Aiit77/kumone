@@ -17,6 +17,9 @@ struct MainWindow: View {
         } detail: {
             detailStack
         }
+        // Immersive now-playing page: hide the whole window toolbar
+        // (sidebar toggle, navigation title, search field).
+        .toolbar(player.showNowPlaying ? .hidden : .automatic, for: .windowToolbar)
         .environment(\.openLogin, { showLogin = true })
         .task {
             await account.bootstrap()

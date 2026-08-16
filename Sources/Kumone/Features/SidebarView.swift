@@ -292,13 +292,13 @@ private struct SidebarRow: View {
                     .foregroundStyle(Theme.accent)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 8)
             .padding(.vertical, 5)
             .background(selectionBackground)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .listRowInsets(EdgeInsets(top: 1, leading: 10, bottom: 1, trailing: 10))
+        .listRowInsets(EdgeInsets(top: 1, leading: 0, bottom: 1, trailing: 6))
     }
 
     @ViewBuilder
@@ -328,13 +328,13 @@ private struct SidebarPlaylistRow: View {
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(selectionBackground)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .listRowInsets(EdgeInsets(top: 1, leading: 10, bottom: 1, trailing: 10))
+        .listRowInsets(EdgeInsets(top: 1, leading: 0, bottom: 1, trailing: 6))
     }
 
     @ViewBuilder
