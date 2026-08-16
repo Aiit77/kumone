@@ -249,7 +249,10 @@ struct PlaylistDetailView: View {
     }
 
     private var playable: [Track] {
-        model.tracks.filter {
+        // With unblock enabled, gray tracks resolve from third-party sources —
+        // keep them in the play-all queue (mirrors TrackListView).
+        if SettingsManager.shared.enableUnblock { return model.tracks }
+        return model.tracks.filter {
             $0.playability(privilege: model.privileges[$0.id],
                            isLoggedIn: account.isLoggedIn,
                            vipType: account.vipType) == .playable

@@ -50,15 +50,11 @@ struct MainWindow: View {
                 .appDestinations()
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            if player.hasCurrentTrack {
-                PlayerBar()
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
+            PlayerBar()
         }
         .overlay(alignment: .trailing) {
             rightPanel
         }
-        .animation(AppAnimation.standard, value: player.hasCurrentTrack)
         .animation(AppAnimation.standard, value: player.activePanel)
         .toolbar {
             if #available(macOS 26.0, *) {

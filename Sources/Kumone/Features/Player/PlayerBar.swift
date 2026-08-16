@@ -50,6 +50,7 @@ struct PlayerBar: View {
 
     private var artworkButton: some View {
         Button {
+            guard player.hasCurrentTrack else { return }
             withAnimation(AppAnimation.smooth) {
                 player.showNowPlaying = true
             }
@@ -116,6 +117,7 @@ struct PlayerBar: View {
             ScrubberLane()
         }
         .padding(.vertical, 5)
+        .opacity(player.hasCurrentTrack ? 1 : 0.5)
     }
 
     private var playPauseButton: some View {
