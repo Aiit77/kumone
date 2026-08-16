@@ -19,7 +19,7 @@ SwiftUI 编写 · 直连网易云真实 API · Sparkle 自动更新
   </tr>
   <tr>
     <td><img src="docs/screenshot-daily.png" alt="每日推荐" /></td>
-    <td><img src="docs/screenshot-search.png" alt="搜索" /></td>
+    <td><img src="docs/screenshot-lyrics.png" alt="歌词面板" /></td>
   </tr>
 </table>
 
