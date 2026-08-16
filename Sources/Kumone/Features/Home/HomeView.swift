@@ -1,0 +1,429 @@
+import SwiftUI
+
+@MainActor
+@Observable
+final class HomeViewModel {
+    enum State {
+        case idle, loading, loaded
+        case error(String)
+    }
+
+    var state: State = .idle
+    var recommendPlaylists: [PlaylistSummary] = []
+    var toplists: [ToplistItem] = []
+    var newAlbums: [AlbumSummary] = []
+    var topArtists: [ArtistSummary] = []
+    var dailyFirstCover: String?
+
+    func load(loggedIn: Bool) async {
+        if case .loaded = state { return }
+        state = .loading
+
+        async let playlistsTask = fetchRecommendPlaylists(loggedIn: loggedIn)
+        async let toplistsTask = try? NeteaseAPI.toplists()
+        async let albumsTask = try? NeteaseAPI.newAlbums(limit: 20)
+        async let artistsTask = try? NeteaseAPI.topArtists()
+
+        let playlists = await playlistsTask
+        recommendPlaylists = playlists
+        toplists = (await toplistsTask ?? []).filter {
+            [19_723_756, 3_779_629, 2_884_035, 3_778_678, 60198].contains($0.id)
+        }
+        newAlbums = await albumsTask ?? []
+        let artists = await artistsTask ?? []
+        topArtists = Array(artists.shuffled().prefix(6))
+
+        if loggedIn {
+            if let daily = try? await NeteaseAPI.dailyRecommendSongs() {
+                dailyFirstCover = daily.first?.album.picUrl
+            }
+        }
+
+        state = playlists.isEmpty && newAlbums.isEmpty ? .error("网络连接失败") : .loaded
+    }
+
+    func reload(loggedIn: Bool) async {
+        state = .idle
+        await load(loggedIn: loggedIn)
+    }
+
+    private func fetchRecommendPlaylists(loggedIn: Bool) async -> [PlaylistSummary] {
+        if loggedIn {
+            async let recommend = try? NeteaseAPI.recommendResource()
+            async let personalized = try? NeteaseAPI.personalizedPlaylists(limit: 30)
+            let head = await recommend ?? []
+            let tail = await personalized ?? []
+            var seen = Set<Int>()
+            return (head + tail).filter { seen.insert($0.id).inserted }
+        }
+        return (try? await NeteaseAPI.personalizedPlaylists(limit: 30)) ?? []
+    }
+}
+
+struct HomeView: View {
+    @Environment(AccountStore.self) private var account
+    @Environment(PlayerService.self) private var player
+    @Environment(\.openLogin) private var openLogin
+    @State private var model = HomeViewModel()
+
+    var body: some View {
+        ScrollView {
+            switch model.state {
+            case .idle, .loading:
+                loadingBody
+            case .error(let message):
+                ErrorStateView(message: message) {
+                    Task { await model.reload(loggedIn: account.isLoggedIn) }
+                }
+                .frame(minHeight: 400)
+            case .loaded:
+                loadedBody
+            }
+        }
+        .navigationTitle("推荐")
+        .task(id: account.isLoggedIn) {
+            await model.load(loggedIn: account.isLoggedIn)
+        }
+    }
+
+    private var loadingBody: some View {
+        VStack(alignment: .leading, spacing: 32) {
+            HStack(spacing: 16) {
+                ForEach(0..<3, id: \.self) { _ in
+                    SkeletonView(cornerRadius: Theme.Radius.large)
+                        .frame(width: 230, height: 132)
+                }
+            }
+            SkeletonShelf()
+            SkeletonShelf()
+        }
+        .padding(Theme.Layout.contentInset)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var loadedBody: some View {
+        LazyVStack(alignment: .leading, spacing: 34) {
+            featureCards
+                .padding(.top, 8)
+
+            if !model.recommendPlaylists.isEmpty {
+                Shelf(title: "推荐歌单") {
+                    ForEach(Array(model.recommendPlaylists.prefix(12).enumerated()), id: \.element.id) { index, playlist in
+                        playlistCard(playlist)
+                            .staggeredAppearance(index: index, id: "home-rec-\(playlist.id)")
+                    }
+                }
+            }
+
+            if !model.toplists.isEmpty {
+                Shelf(title: "排行榜", seeAll: nil) {
+                    ForEach(model.toplists) { toplist in
+                        NavigationLink(value: Destination.playlist(toplist.id)) {
+                            toplistCard(toplist)
+                        }
+                        .buttonStyle(.interactiveCard)
+                    }
+                }
+            }
+
+            if !model.newAlbums.isEmpty {
+                Shelf(title: "新碟上架") {
+                    ForEach(model.newAlbums) { album in
+                        albumCard(album)
+                    }
+                }
+            }
+
+            if !model.topArtists.isEmpty {
+                Shelf(title: "推荐歌手") {
+                    ForEach(model.topArtists) { artist in
+                        artistCard(artist)
+                    }
+                }
+            }
+
+            Color.clear.frame(height: 8)
+        }
+        .padding(.vertical, Theme.Layout.contentInset - 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: - Feature cards
+
+    private var featureCards: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 16) {
+                Spacer().frame(width: Theme.Layout.contentInset - 16)
+                if account.isLoggedIn {
+                    NavigationLink(value: Destination.daily) {
+                        FeatureCard(
+                            title: "每日推荐",
+                            subtitle: "根据你的口味生成",
+                            icon: "calendar",
+                            coverURL: model.dailyFirstCover?.resizedImageURL(512),
+                            showsDate: true
+                        )
+                    }
+                    .buttonStyle(.interactiveCard)
+
+                    Button {
+                        player.startFM()
+                    } label: {
+                        FeatureCard(
+                            title: "私人漫游",
+                            subtitle: "从喜欢的歌开始漫游",
+                            icon: "wave.3.right.circle.fill",
+                            gradient: [Color(red: 0.16, green: 0.20, blue: 0.42),
+                                       Color(red: 0.36, green: 0.24, blue: 0.62)]
+                        )
+                    }
+                    .buttonStyle(.interactiveCard)
+
+                    Button {
+                        startHeartbeatMode()
+                    } label: {
+                        FeatureCard(
+                            title: "心动模式",
+                            subtitle: "你的红心歌曲和相似推荐",
+                            icon: "heart.circle.fill",
+                            gradient: [Color(red: 0.85, green: 0.19, blue: 0.41),
+                                       Color(red: 0.98, green: 0.42, blue: 0.34)]
+                        )
+                    }
+                    .buttonStyle(.interactiveCard)
+                } else {
+                    Button {
+                        openLogin()
+                    } label: {
+                        FeatureCard(
+                            title: "登录网易云音乐",
+                            subtitle: "解锁每日推荐、私人漫游与心动模式",
+                            icon: "person.crop.circle.badge.checkmark",
+                            gradient: [Theme.accentDeep, Theme.accent]
+                        )
+                    }
+                    .buttonStyle(.interactiveCard)
+                }
+                Spacer().frame(width: Theme.Layout.contentInset - 16)
+            }
+        }
+    }
+
+    private func startHeartbeatMode() {
+        guard let likedList = account.likedSongsPlaylist else { return }
+        Task {
+            guard let seed = account.likedTrackIDs.randomElement() else {
+                ToastCenter.shared.show("先收藏一些喜欢的歌曲吧")
+                return
+            }
+            do {
+                let tracks = try await NeteaseAPI.intelligenceList(songID: seed, playlistID: likedList.id)
+                guard !tracks.isEmpty else {
+                    ToastCenter.shared.show("心动模式暂时不可用")
+                    return
+                }
+                player.play(tracks: tracks, source: .playlist(likedList.id))
+                ToastCenter.shared.show("已开启心动模式")
+            } catch {
+                ToastCenter.shared.show(error.localizedDescription)
+            }
+        }
+    }
+
+    // MARK: - Cards
+
+    private func playlistCard(_ playlist: PlaylistSummary) -> some View {
+        NavigationLink(value: Destination.playlist(playlist.id)) {
+            CoverCardBody(
+                coverURL: playlist.coverURL?.resizedImageURL(384),
+                title: playlist.name,
+                subtitle: playlist.copywriter,
+                playCount: playlist.playCount
+            ) {
+                playPlaylist(playlist.id)
+            }
+        }
+        .buttonStyle(.interactiveCard)
+    }
+
+    private func albumCard(_ album: AlbumSummary) -> some View {
+        NavigationLink(value: Destination.album(album.id)) {
+            CoverCardBody(
+                coverURL: album.picUrl?.resizedImageURL(384),
+                title: album.name,
+                subtitle: album.artistName
+            ) {
+                Task {
+                    if let detail = try? await NeteaseAPI.album(id: album.id) {
+                        player.play(tracks: detail.songs, source: .album(album.id))
+                    }
+                }
+            }
+        }
+        .buttonStyle(.interactiveCard)
+    }
+
+    private func artistCard(_ artist: ArtistSummary) -> some View {
+        NavigationLink(value: Destination.artist(artist.id)) {
+            VStack(spacing: 10) {
+                CachedAsyncImage(url: artist.picUrl?.resizedImageURL(256))
+                    .frame(width: 128, height: 128)
+                    .clipShape(Circle())
+                    .overlay(Circle().strokeBorder(.primary.opacity(0.08), lineWidth: 0.5))
+                Text(artist.name)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+            }
+            .frame(width: 140)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.interactiveCard)
+    }
+
+    private func toplistCard(_ toplist: ToplistItem) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ZStack(alignment: .bottomLeading) {
+                CachedAsyncImage(url: toplist.coverImgUrl?.resizedImageURL(384))
+                    .frame(width: Theme.Layout.cardSize, height: Theme.Layout.cardSize)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.standard, style: .continuous))
+                LinearGradient(colors: [.clear, .black.opacity(0.55)], startPoint: .center, endPoint: .bottom)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.standard, style: .continuous))
+                Text(toplist.updateFrequency ?? "")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .padding(8)
+            }
+            .frame(width: Theme.Layout.cardSize, height: Theme.Layout.cardSize)
+            Text(toplist.name)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+        }
+        .frame(width: Theme.Layout.cardSize, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+
+    private func playPlaylist(_ id: Int) {
+        Task {
+            guard let detail = try? await NeteaseAPI.playlistDetail(id: id) else { return }
+            var tracks = detail.playlist.tracks
+            if tracks.isEmpty {
+                let ids = detail.playlist.trackIds.map(\.id)
+                tracks = (try? await NeteaseAPI.songDetails(ids: Array(ids.prefix(500))))?.songs ?? []
+            }
+            player.play(tracks: tracks, source: .playlist(id))
+        }
+    }
+}
+
+// MARK: - Feature card
+
+struct FeatureCard: View {
+    let title: String
+    let subtitle: String
+    let icon: String
+    var coverURL: URL?
+    var gradient: [Color] = [Color(red: 0.75, green: 0.16, blue: 0.22),
+                             Color(red: 0.95, green: 0.35, blue: 0.28)]
+    var showsDate = false
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            if let coverURL {
+                CachedAsyncImage(url: coverURL)
+                    .frame(width: 230, height: 132)
+                LinearGradient(colors: [.black.opacity(0.1), .black.opacity(0.68)],
+                               startPoint: .top, endPoint: .bottom)
+            } else {
+                LinearGradient(colors: gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                RadialGradient(colors: [.white.opacity(0.18), .clear],
+                               center: .topLeading, startRadius: 0, endRadius: 220)
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                ZStack {
+                    Image(systemName: icon)
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundStyle(.white)
+                    if showsDate {
+                        Text("\(Calendar.current.component(.day, from: .now))")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                            .offset(y: 3)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                Text(title)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(.white)
+                Text(subtitle)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.white.opacity(0.75))
+                    .lineLimit(1)
+            }
+            .padding(14)
+            .shadow(color: .black.opacity(0.4), radius: 2, y: 1)
+        }
+        .frame(width: 230, height: 132)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous)
+                .strokeBorder(.white.opacity(0.12), lineWidth: 0.5)
+        )
+        .contentShape(Rectangle())
+    }
+}
+
+/// Card body without its own Button wrapper (for use inside NavigationLink).
+struct CoverCardBody: View {
+    let coverURL: URL?
+    let title: String
+    var subtitle: String?
+    var playCount: Int = 0
+    var size: CGFloat = Theme.Layout.cardSize
+    var onPlay: (() -> Void)?
+
+    @State private var isHovering = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ZStack(alignment: .bottomLeading) {
+                CachedAsyncImage(url: coverURL)
+                    .frame(width: size, height: size)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.standard, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Radius.standard, style: .continuous)
+                            .strokeBorder(.primary.opacity(0.08), lineWidth: 0.5)
+                    )
+                if playCount > 0 {
+                    PlayCountBadge(count: playCount)
+                        .padding(6)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                }
+                if let onPlay {
+                    PlayOverlayButton(visible: isHovering, action: onPlay)
+                        .padding(8)
+                }
+            }
+            .frame(width: size, height: size)
+
+            Text(title)
+                .font(.system(size: 13, weight: .medium))
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+                .foregroundStyle(.primary)
+                .frame(maxWidth: size, alignment: .leading)
+            if let subtitle, !subtitle.isEmpty {
+                Text(subtitle)
+                    .font(.system(size: 11))
+                    .lineLimit(1)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: size, alignment: .leading)
+            }
+        }
+        .frame(width: size, alignment: .leading)
+        .contentShape(Rectangle())
+        .onHover { isHovering = $0 }
+    }
+}
