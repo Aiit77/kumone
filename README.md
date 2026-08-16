@@ -31,6 +31,10 @@ Built with SwiftUI · Talks directly to NetEase's real API · Sparkle auto-updat
 
 </div>
 
+## About the Name
+
+**Kumone** comes from the Japanese **雲の音** (*kumo no ne*, "the sound of clouds"), contracted into one word — **雲音** (くもね, *kumone*). It is a nod to the "cloud" in NetEase **Cloud** Music: the music drifting down to you from the cloud.
+
 ## Features
 
 - 🔐 **QR code login** — scan with the NetEase Cloud Music app; cookies are persisted locally and auto-refreshed
