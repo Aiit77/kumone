@@ -8,12 +8,22 @@ let package = Package(
     products: [
         .executable(name: "Kumone", targets: ["Kumone"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.9.5"),
+    ],
     targets: [
         .executableTarget(
             name: "Kumone",
+            dependencies: [
+                .product(name: "Sparkle", package: "Sparkle"),
+            ],
             path: "Sources/Kumone",
             swiftSettings: [
                 .swiftLanguageMode(.v5),
+            ],
+            linkerSettings: [
+                // Sparkle.framework is embedded in Contents/Frameworks by Scripts/build-app.sh.
+                .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"]),
             ]
         ),
     ]

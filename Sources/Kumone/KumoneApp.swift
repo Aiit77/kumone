@@ -25,6 +25,10 @@ struct KumoneApp: App {
                      height: Theme.Layout.defaultWindowHeight)
         .windowResizability(.contentMinSize)
         .commands {
+            CommandGroup(after: .appInfo) {
+                CheckForUpdatesButton()
+            }
+
             CommandMenu("播放") {
                 Button(player.isPlaying ? "暂停" : "播放") {
                     player.togglePlayPause()

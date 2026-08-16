@@ -10,9 +10,17 @@ cd "$ROOT"
 CONF="${1:-debug}"
 APP_NAME="Kumone"
 BUNDLE_ID="im.missuo.Kumone"
+# Version resolution: environment > version.env > defaults.
+ENV_MARKETING_VERSION="${MARKETING_VERSION:-}"
+ENV_BUILD_NUMBER="${BUILD_NUMBER:-}"
 MARKETING_VERSION="0.1.0"
 BUILD_NUMBER="1"
 [ -f "$ROOT/version.env" ] && source "$ROOT/version.env"
+[ -n "$ENV_MARKETING_VERSION" ] && MARKETING_VERSION="$ENV_MARKETING_VERSION"
+[ -n "$ENV_BUILD_NUMBER" ] && BUILD_NUMBER="$ENV_BUILD_NUMBER"
+
+SPARKLE_FEED_URL="https://github.com/missuo/kumone/releases/latest/download/appcast.xml"
+SPARKLE_PUBLIC_ED_KEY="RHEhllstUuuVrVDCPGrbhg/8LivSzpuZB9X3u3xdV5o="
 
 BUILD_DIR="$ROOT/.build/app"
 APP_BUNDLE="$BUILD_DIR/$APP_NAME.app"
@@ -25,6 +33,15 @@ mkdir -p "$APP_BUNDLE/Contents/MacOS" "$APP_BUNDLE/Contents/Resources"
 
 cp "$BIN_PATH/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
 chmod +x "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
+
+# Embed Sparkle.framework (SwiftPM binary artifact) into Contents/Frameworks.
+SPARKLE_FW="$(find "$ROOT/.build/artifacts" -type d -name 'Sparkle.framework' -path '*macos*' 2>/dev/null | head -n1)"
+if [ -z "$SPARKLE_FW" ]; then
+  echo "ERROR: Sparkle.framework not found under .build/artifacts" >&2
+  exit 1
+fi
+mkdir -p "$APP_BUNDLE/Contents/Frameworks"
+cp -a "$SPARKLE_FW" "$APP_BUNDLE/Contents/Frameworks/"
 
 # SwiftPM resource bundles (if any)
 find "$BIN_PATH" -maxdepth 1 -name '*.bundle' -not -name '*Tests*' -print0 |
@@ -89,6 +106,9 @@ cat > "$APP_BUNDLE/Contents/Info.plist" <<PLIST
         <key>NSAllowsArbitraryLoads</key><true/>
     </dict>
     <key>KumoneGitCommit</key><string>$GIT_COMMIT</string>
+    <key>SUFeedURL</key><string>$SPARKLE_FEED_URL</string>
+    <key>SUPublicEDKey</key><string>$SPARKLE_PUBLIC_ED_KEY</string>
+    <key>SUEnableAutomaticChecks</key><true/>
 </dict>
 </plist>
 PLIST
