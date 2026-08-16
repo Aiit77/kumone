@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(SettingsManager.self) private var settings
     @Environment(AccountStore.self) private var account
-    @State private var cacheSize: String = "计算中…"
+    @State private var cacheSize: String = String(localized: "计算中…")
 
     var body: some View {
         @Bindable var settings = settings
@@ -94,8 +94,8 @@ struct SettingsView: View {
             try? FileManager.default.removeItem(at: dir)
             try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             DispatchQueue.main.async {
-                cacheSize = "0 字节"
-                ToastCenter.shared.show("缓存已清除")
+                cacheSize = String(localized: "0 字节")
+                ToastCenter.shared.show(String(localized: "缓存已清除"))
             }
         }
     }

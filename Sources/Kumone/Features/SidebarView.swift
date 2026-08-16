@@ -78,7 +78,7 @@ struct SidebarView: View {
                     do {
                         try await NeteaseAPI.createPlaylist(name: name, isPrivate: false)
                         await account.refreshLibrary()
-                        ToastCenter.shared.show("歌单已创建")
+                        ToastCenter.shared.show(String(localized: "歌单已创建"))
                     } catch {
                         ToastCenter.shared.show(error.localizedDescription)
                     }
@@ -88,7 +88,7 @@ struct SidebarView: View {
         }
     }
 
-    private func row(_ item: SidebarItem, title: String, icon: String) -> some View {
+    private func row(_ item: SidebarItem, title: LocalizedStringKey, icon: String) -> some View {
         SidebarRow(
             title: title, icon: icon, isSelected: selection == item,
             action: { selection = item }
@@ -276,7 +276,7 @@ private struct AccountChip: View {
 // MARK: - Rows
 
 private struct SidebarRow: View {
-    let title: String
+    let title: LocalizedStringKey
     let icon: String
     let isSelected: Bool
     let action: () -> Void

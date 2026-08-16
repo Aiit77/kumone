@@ -5,6 +5,20 @@
 version section contains an `### English` part followed by a `### 简体中文`
 part. 段落格式：`## <版本号> - <日期>`。
 
+## 0.1.5 - 2026-08-16
+
+### English
+
+- Added: Radar Playlists section on Home (Personal Radar / Chinese / Western / Japanese — personalized per account)
+- Added: English localization; the app follows the system language
+- Fixed: Cloud Disk always showed "no songs" — the real API nests song data under `privateCloud`/`simpleSong` and serves numeric quota fields, which broke decoding
+
+### 简体中文
+
+- 新增：首页「雷达歌单」专区（私人雷达 / 华语 / 欧美 / 日系，按账号个性化生成）
+- 新增：英文界面，App 跟随系统语言
+- 修复：音乐云盘始终显示「没有歌曲」的问题（真实接口把歌曲数据嵌在 `privateCloud`/`simpleSong` 里、容量字段为数字，导致解码失败）
+
 ## 0.1.4 - 2026-08-16
 
 ### English

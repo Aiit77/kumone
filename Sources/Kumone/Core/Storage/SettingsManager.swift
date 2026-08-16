@@ -11,21 +11,21 @@ enum AudioQuality: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .standard: return "标准"
-        case .higher: return "较高"
-        case .exhigh: return "极高"
-        case .lossless: return "无损"
+        case .standard: return String(localized: "标准")
+        case .higher: return String(localized: "较高")
+        case .exhigh: return String(localized: "极高")
+        case .lossless: return String(localized: "无损")
         case .hires: return "Hi-Res"
         }
     }
 
     var badge: String {
         switch self {
-        case .standard: return "标准"
-        case .higher: return "较高"
-        case .exhigh: return "极高"
-        case .lossless: return "无损"
-        case .hires: return "高解析"
+        case .standard: return String(localized: "标准")
+        case .higher: return String(localized: "较高")
+        case .exhigh: return String(localized: "极高")
+        case .lossless: return String(localized: "无损")
+        case .hires: return String(localized: "高解析")
         }
     }
 }
@@ -37,9 +37,9 @@ enum AppAppearance: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .auto: return "跟随系统"
-        case .light: return "浅色"
-        case .dark: return "深色"
+        case .auto: return String(localized: "跟随系统")
+        case .light: return String(localized: "浅色")
+        case .dark: return String(localized: "深色")
         }
     }
 

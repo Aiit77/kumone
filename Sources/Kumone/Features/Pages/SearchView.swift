@@ -70,7 +70,7 @@ struct SearchView: View {
             LazyVStack(alignment: .leading, spacing: 24) {
                 Picker("", selection: Bindable(model).tab) {
                     ForEach(SearchViewModel.Tab.allCases) { tab in
-                        Text(tab.rawValue).tag(tab)
+                        Text(LocalizedStringKey(tab.rawValue)).tag(tab)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -88,7 +88,7 @@ struct SearchView: View {
                 Color.clear.frame(height: 8)
             }
         }
-        .navigationTitle("搜索：\(query)")
+        .navigationTitle(String(localized: "搜索：\(query)"))
         .task(id: model.tab) {
             await model.load(tab: model.tab)
         }

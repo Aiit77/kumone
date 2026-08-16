@@ -19,7 +19,7 @@ struct CollectionsView: View {
             LazyVStack(alignment: .leading, spacing: 20) {
                 Picker("", selection: $tab) {
                     ForEach(Tab.allCases) { tab in
-                        Text(tab.rawValue).tag(tab)
+                        Text(LocalizedStringKey(tab.rawValue)).tag(tab)
                     }
                 }
                 .pickerStyle(.segmented)

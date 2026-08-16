@@ -31,7 +31,7 @@ struct PlayerBar: View {
             artworkButton
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 6) {
-                    MarqueeText(text: player.currentTrack?.name ?? "未在播放")
+                    MarqueeText(text: player.currentTrack?.name ?? String(localized: "未在播放"))
                         .frame(height: 17)
                     if player.currentTrack?.fee == 1 {
                         VIPBadge()
@@ -155,7 +155,7 @@ struct PlayerBar: View {
                 QualityTag(text: quality.badge)
                     .padding(.trailing, 2)
             } else if !compact, player.unblockSource != nil {
-                QualityTag(text: "音源")
+                QualityTag(text: String(localized: "音源"))
                     .padding(.trailing, 2)
                     .help("来自 \(player.unblockSource ?? "")")
             }
@@ -247,7 +247,7 @@ struct LikeButton: View {
         ) {
             Task { await account.toggleLike(trackID: trackID) }
         }
-        .help(liked ? "取消喜欢" : "喜欢")
+        .help(liked ? String(localized: "取消喜欢") : String(localized: "喜欢"))
     }
 }
 
