@@ -6,7 +6,7 @@
 
 **雲の音 — 原生 macOS 网易云音乐客户端**
 
-SwiftUI 编写 · 零第三方依赖 · 直连网易云真实 API
+SwiftUI 编写 · 直连网易云真实 API · Sparkle 自动更新
 
 [![Platform](https://img.shields.io/badge/platform-macOS%2015%2B-blue?logo=apple)](#构建)
 [![Swift](https://img.shields.io/badge/Swift-6.2-F05138?logo=swift&logoColor=white)](Package.swift)
@@ -39,6 +39,24 @@ SwiftUI 编写 · 零第三方依赖 · 直连网易云真实 API
 - ✏️ **歌单管理** — 新建 / 删除 / 收藏歌单、添加 / 移除歌曲、红心
 - 🔍 **搜索** — 综合 / 单曲 / 歌手 / 专辑 / 歌单，热搜词占位
 - ⌨️ **系统集成** — 媒体键 / 控制中心（Now Playing）、听歌打卡、退出后恢复播放队列
+
+## 安装
+
+要求 Apple Silicon Mac、macOS 15+。
+
+### Homebrew
+
+```bash
+brew install owo-network/brew/kumone --cask
+```
+
+### 手动下载
+
+从 [Releases](https://github.com/missuo/kumone/releases/latest) 下载最新的
+`Kumone-x.y.z.zip`，解压后拖入「应用程序」。
+
+应用已使用 Developer ID 签名并通过 Apple 公证，内置 Sparkle 自动更新
+（菜单栏 Kumone → 检查更新…）。
 
 ## 构建
 
