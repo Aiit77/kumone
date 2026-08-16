@@ -1,48 +1,54 @@
+<div align="right">
+
+**English** | [简体中文](README_CN.md)
+
+</div>
+
 <div align="center">
 
 <img src="docs/icon.png" width="140" alt="Kumone" />
 
 # Kumone
 
-**雲の音 — 原生 macOS 网易云音乐客户端**
+**雲の音 — Native macOS client for NetEase Cloud Music**
 
-SwiftUI 编写 · 直连网易云真实 API · Sparkle 自动更新
+Built with SwiftUI · Talks directly to NetEase's real API · Sparkle auto-updates
 
-[![Platform](https://img.shields.io/badge/platform-macOS%2015%2B-blue?logo=apple)](#构建)
+[![Platform](https://img.shields.io/badge/platform-macOS%2015%2B-blue?logo=apple)](#building)
 [![Swift](https://img.shields.io/badge/Swift-6.2-F05138?logo=swift&logoColor=white)](Package.swift)
 [![License](https://img.shields.io/badge/license-LGPL--3.0--only-orange)](LICENSE)
 
 <table>
   <tr>
-    <td><img src="docs/screenshot-home.png" alt="推荐" /></td>
-    <td><img src="docs/screenshot-nowplaying.png" alt="沉浸播放页" /></td>
+    <td><img src="docs/screenshot-home.png" alt="Home" /></td>
+    <td><img src="docs/screenshot-nowplaying.png" alt="Now Playing" /></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshot-daily.png" alt="每日推荐" /></td>
-    <td><img src="docs/screenshot-lyrics.png" alt="歌词面板" /></td>
+    <td><img src="docs/screenshot-daily.png" alt="Daily Recommendations" /></td>
+    <td><img src="docs/screenshot-lyrics.png" alt="Lyrics Panel" /></td>
   </tr>
 </table>
 
 </div>
 
-## 功能
+## Features
 
-- 🔐 **扫码登录** — 网易云 App 扫码，Cookie 本地持久化，自动续期
-- 🏠 **推荐** — 每日推荐、私人漫游、心动模式、推荐歌单、排行榜、新碟上架、推荐歌手
-- 🧭 **精选** — 分类歌单（精品 / 官方 / 排行榜 / 场景分类）无限滚动
-- 🎵 **播放** — AVPlayer 引擎，标准 ~ Hi-Res 音质可选（黑胶 VIP 可播无损，自动回落），随机 / 单曲循环 / 列表循环，下一首播放队列，灰色歌曲识别
-- 🔓 **灰色歌曲解锁** — 原生实现 UnblockNeteaseMusic 核心音源（pyncmd / 酷我 / 酷狗），无版权或试听歌曲自动匹配第三方音源
-- 🖼 **沉浸播放页** — 封面取色渐变背景 + 大封面 + 大字同步歌词（点击播放条封面进入，Esc 退出）
-- 📻 **私人漫游** — 沉浸式 FM 页面，不喜欢 / 切歌
-- 📝 **歌词** — 侧边玻璃面板，逐行同步 + 翻译，点击跳转
-- 📚 **音乐库** — 我喜欢的音乐、创建 / 收藏的歌单、收藏专辑、关注歌手、最近播放、音乐云盘
-- ✏️ **歌单管理** — 新建 / 删除 / 收藏歌单、添加 / 移除歌曲、红心
-- 🔍 **搜索** — 综合 / 单曲 / 歌手 / 专辑 / 歌单，热搜词占位
-- ⌨️ **系统集成** — 媒体键 / 控制中心（Now Playing）、听歌打卡、退出后恢复播放队列
+- 🔐 **QR code login** — scan with the NetEase Cloud Music app; cookies are persisted locally and auto-refreshed
+- 🏠 **Home** — daily recommendations, Personal FM, Heartbeat Mode, recommended playlists, charts, new albums, recommended artists
+- 🧭 **Explore** — category playlists (curated / official / charts / mood) with infinite scrolling
+- 🎵 **Playback** — AVPlayer engine, Standard to Hi-Res quality (lossless with 黑胶 VIP, automatic fallback), shuffle / repeat one / repeat all, play-next queue, gray track detection
+- 🔓 **Gray track unblocking** — native implementation of UnblockNeteaseMusic's core sources (pyncmd / Kuwo / Kugou); unavailable or trial-only tracks automatically resolve from third-party sources
+- 🖼 **Immersive now-playing page** — artwork-tinted gradient backdrop, large artwork, big synced lyrics (click the player-bar artwork to open, Esc to close)
+- 📻 **Personal FM** — immersive roaming page with trash / skip
+- 📝 **Lyrics** — glass side panel with line-synced lyrics + translation, click to seek
+- 📚 **Library** — liked songs, created / subscribed playlists, saved albums, followed artists, recently played, cloud disk
+- ✏️ **Playlist management** — create / delete / subscribe playlists, add / remove tracks, heart songs
+- 🔍 **Search** — aggregate / songs / artists / albums / playlists, trending keyword placeholder
+- ⌨️ **System integration** — media keys / Control Center (Now Playing), scrobbling, playback queue restored across launches
 
-## 安装
+## Installation
 
-要求 Apple Silicon Mac、macOS 15+。
+Requires an Apple Silicon Mac running macOS 15+.
 
 ### Homebrew
 
@@ -50,47 +56,54 @@ SwiftUI 编写 · 直连网易云真实 API · Sparkle 自动更新
 brew install owo-network/brew/kumone --cask
 ```
 
-### 手动下载
+### Manual download
 
-从 [Releases](https://github.com/missuo/kumone/releases/latest) 下载最新的
-`Kumone-x.y.z.zip`，解压后拖入「应用程序」。
+Download the latest `Kumone-x.y.z.zip` from
+[Releases](https://github.com/missuo/kumone/releases/latest), unzip, and drag
+it into Applications.
 
-应用已使用 Developer ID 签名并通过 Apple 公证，内置 Sparkle 自动更新
-（菜单栏 Kumone → 检查更新…）。
+The app is signed with a Developer ID certificate and notarized by Apple, with
+built-in Sparkle automatic updates (menu bar: Kumone → Check for Updates…).
 
-## 构建
+## Building
 
-要求 macOS 15+、Xcode 26+。
+Requires macOS 15+ and Xcode 26+.
 
 ```bash
-swift build                    # 编译
-Scripts/build-app.sh           # 打包 .app（输出 .build/app/Kumone.app）
-Scripts/compile_and_run.sh     # 杀进程 → 重新打包 → 启动
+swift build                    # compile
+Scripts/build-app.sh           # package the .app (outputs .build/app/Kumone.app)
+Scripts/compile_and_run.sh     # kill → repackage → relaunch
 ```
 
-## 架构
+## Architecture
 
 ```
 Sources/Kumone/
 ├── Core/
-│   ├── API/            # NeteaseCrypto（weapi/eapi 加密）、NeteaseClient（传输 + Cookie）、NeteaseAPI（约 50 个端点）
-│   ├── Models/         # 统一 Track 模型（兼容新旧两种 JSON 格式）、歌词解析器
-│   ├── Player/         # PlayerService（队列 / 随机 / 循环 / FM / URL 解析）、UnblockService、NowPlayingManager
-│   └── Storage/        # AccountStore、SettingsManager、两级图片缓存
-├── DesignSystem/       # 设计 token、按钮样式（hover 缩放 / 行高亮 / chip）、骨架屏、卡片、跑马灯、封面取色
-└── Features/           # 各页面 + 播放条 + 沉浸播放页 + 歌词/队列面板
+│   ├── API/            # NeteaseCrypto (weapi/eapi encryption), NeteaseClient (transport + cookies), NeteaseAPI (~50 endpoints)
+│   ├── Models/         # unified Track model (tolerates both JSON shapes), lyrics parser
+│   ├── Player/         # PlayerService (queue / shuffle / repeat / FM / URL resolution), UnblockService, NowPlayingManager
+│   └── Storage/        # AccountStore, SettingsManager, two-tier image cache
+├── DesignSystem/       # design tokens, button styles (hover scale / row highlight / chips), skeletons, cards, marquee, artwork palette
+└── Features/           # pages + player bar + immersive now-playing + lyrics/queue panels
 ```
 
-不依赖任何第三方 API 服务器：weapi（AES-CBC 双层 + RSA）与 eapi（AES-ECB + MD5 摘要）加密为原生 Swift 实现，请求直达 `music.163.com` / `interface.music.163.com`。
+No third-party API server involved: weapi (double AES-CBC + RSA) and eapi
+(AES-ECB + MD5 digest) encryption are implemented natively in Swift, and
+requests go straight to `music.163.com` / `interface.music.163.com`.
 
 ## Credits
 
-Kumone 是从零编写的 Swift 实现，未复制以下项目的代码，但深度参考了它们的设计与实现思路，在此致谢：
+Kumone is written from scratch in Swift. No code was copied from the projects
+below, but their design and implementation ideas were referenced extensively:
 
-- [YesPlayMusic](https://github.com/qier222/YesPlayMusic)（MIT，© qier222）— 功能设计、网易云 API 端点与行为逻辑的参考
-- [kaset](https://github.com/sozercan/kaset)（MIT，© sozercan）— UI 设计系统、动效与 SwiftPM 打包方案的参考
-- [UnblockNeteaseMusic/server](https://github.com/UnblockNeteaseMusic/server)（LGPL-3.0-only）— 灰色歌曲第三方音源的接口与匹配策略参考（`UnblockService.swift` 为独立的 Swift 重新实现）
+- [YesPlayMusic](https://github.com/qier222/YesPlayMusic) (MIT, © qier222) — feature design, NetEase API endpoints and behavior
+- [kaset](https://github.com/sozercan/kaset) (MIT, © sozercan) — UI design system, motion, and SwiftPM packaging approach
+- [UnblockNeteaseMusic/server](https://github.com/UnblockNeteaseMusic/server) (LGPL-3.0-only) — third-party source endpoints and matching strategy for gray tracks (`UnblockService.swift` is an independent Swift reimplementation)
 
-## 协议与说明
+## License
 
-本项目以 [LGPL-3.0-only](LICENSE) 协议开源（随附 [GPL-3.0](COPYING) 文本）。仅供学习交流，音乐数据与版权归网易云音乐及各音源平台所有。不支持下载、无社交功能。
+Licensed under [LGPL-3.0-only](LICENSE) (the [GPL-3.0](COPYING) text is
+included alongside). For learning and personal use only — all music data and
+rights belong to NetEase Cloud Music and the respective source platforms. No
+downloading, no social features.
