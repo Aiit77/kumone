@@ -6,6 +6,18 @@
 section the English bullets come first, followed by their Simplified Chinese
 counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单行。
 
+## 0.1.7 - 2026-08-16
+
+### Fixed / 修复
+
+- The like button in the player bar never actually rendered — the marquee title column pushed it out of the fixed-width section; it now always shows whenever a track is loaded
+- 播放条的红心按钮此前从未真正显示（跑马灯标题列把它挤出了固定宽度区域）；现在只要有歌曲加载就始终显示
+
+### Improved / 改进
+
+- Release notes are now structured by change category with English and Chinese stacked under each section (GitHub Releases and Sparkle update notes)
+- 更新说明改为按变更分类组织，每节内英文在上、中文在下（GitHub Release 与 Sparkle 更新弹窗同步生效）
+
 ## 0.1.6 - 2026-08-16
 
 ### Improved / 改进
