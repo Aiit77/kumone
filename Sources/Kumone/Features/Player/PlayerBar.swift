@@ -42,7 +42,8 @@ struct PlayerBar: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
-            if !compact, let track = player.currentTrack {
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if let track = player.currentTrack {
                 LikeButton(trackID: track.id)
             }
         }
