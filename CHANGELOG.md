@@ -6,6 +6,13 @@
 section the English bullets come first, followed by their Simplified Chinese
 counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单行。
 
+## 0.1.8 - 2026-08-17
+
+### Added / 新增
+
+- Desktop lyrics (LyricsX-style): a floating, always-on-top lyric line with translation, toggled from the player bar or Settings; draggable with center snapping, position persisted, excluded from screenshots, visible across all Spaces and full-screen apps
+- 桌面歌词（LyricsX 风格）：悬浮置顶显示当前歌词与翻译，播放条或设置中开关；可拖动（带中线磁吸）、位置持久化、不出现在截图中、所有空间与全屏应用上可见
+
 ## 0.1.7 - 2026-08-16
 
 ### Fixed / 修复

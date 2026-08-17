@@ -204,6 +204,8 @@
 "浅色" = "Light";
 "深色" = "Dark";
 "显示歌词翻译" = "Show Lyrics Translation";
+"桌面歌词" = "Desktop Lyrics";
+"在屏幕上悬浮显示当前歌词，可拖动调整位置" = "Float the current lyric line on screen; drag to reposition";
 "存储" = "Storage";
 "图片缓存" = "Image Cache";
 "清除缓存" = "Clear Cache";

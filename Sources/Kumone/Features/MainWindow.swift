@@ -3,6 +3,7 @@ import SwiftUI
 struct MainWindow: View {
     @Environment(PlayerService.self) private var player
     @Environment(AccountStore.self) private var account
+    @Environment(SettingsManager.self) private var settings
     @Environment(ToastCenter.self) private var toasts
 
     @State private var selection: SidebarItem = .home
@@ -22,7 +23,11 @@ struct MainWindow: View {
         .toolbar(player.showNowPlaying ? .hidden : .automatic, for: .windowToolbar)
         .environment(\.openLogin, { showLogin = true })
         .task {
+            DesktopLyricsController.shared.sync(with: settings.showDesktopLyrics)
             await account.bootstrap()
+        }
+        .onChange(of: settings.showDesktopLyrics) {
+            DesktopLyricsController.shared.sync(with: settings.showDesktopLyrics)
         }
         .sheet(isPresented: $showLogin) {
             LoginSheet()

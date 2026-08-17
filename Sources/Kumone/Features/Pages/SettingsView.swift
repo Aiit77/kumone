@@ -30,6 +30,10 @@ struct SettingsView: View {
                     }
                 }
                 Toggle("显示歌词翻译", isOn: $settings.showLyricsTranslation)
+                Toggle("桌面歌词", isOn: $settings.showDesktopLyrics)
+                Text("在屏幕上悬浮显示当前歌词，可拖动调整位置")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section("存储") {
