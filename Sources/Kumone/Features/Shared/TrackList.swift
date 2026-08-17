@@ -94,6 +94,9 @@ struct TrackRow: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
+        // Fixed row height keeps lazy-stack height estimation exact,
+        // preventing scroll-offset jumps in long lists (#3).
+        .frame(height: style == .albumTrack ? 46 : 52)
         .opacity(isPlayable ? 1 : 0.45)
         .background(
             RoundedRectangle(cornerRadius: Theme.Radius.standard, style: .continuous)

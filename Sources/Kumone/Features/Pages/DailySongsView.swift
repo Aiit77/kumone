@@ -10,7 +10,7 @@ struct DailySongsView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 20) {
                 header
                     .padding(.horizontal, Theme.Layout.contentInset)
                     .padding(.top, 16)

@@ -18,7 +18,7 @@ struct ArtistDetailView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 26) {
+            VStack(alignment: .leading, spacing: 26) {
                 if let artist {
                     header(artist)
                         .padding(.horizontal, Theme.Layout.contentInset)

@@ -67,7 +67,7 @@ struct SearchView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 24) {
                 Picker("", selection: Bindable(model).tab) {
                     ForEach(SearchViewModel.Tab.allCases) { tab in
                         Text(LocalizedStringKey(tab.rawValue)).tag(tab)

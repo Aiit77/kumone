@@ -12,7 +12,7 @@ struct RecentsView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 16) {
                 HStack {
                     Picker("", selection: $week) {
                         Text("所有时间").tag(false)
@@ -96,7 +96,7 @@ struct CloudView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 16) {
                 HStack {
                     if let sizeInfo {
                         Text(sizeInfo)

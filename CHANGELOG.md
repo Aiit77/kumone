@@ -6,6 +6,13 @@
 section the English bullets come first, followed by their Simplified Chinese
 counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单行。
 
+## 0.1.9 - 2026-08-17
+
+### Fixed / 修复
+
+- Scrolling long playlists could loop endlessly around the middle and never reach the bottom — caused by nested lazy stacks fighting over height estimation; list pages now use a plain outer container with lazy rows and fixed row heights (#3)
+- 长歌单滚动到中部时可能无限循环、无法到达底部的问题 —— 嵌套懒加载容器的高度估算互相干扰所致；列表页改为普通外层容器 + 懒加载行 + 固定行高（#3）
+
 ## 0.1.8 - 2026-08-17
 
 ### Added / 新增

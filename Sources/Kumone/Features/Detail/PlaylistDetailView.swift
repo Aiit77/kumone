@@ -87,7 +87,7 @@ struct PlaylistDetailView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 20) {
                 if let detail = model.detail {
                     header(detail)
                         .padding(.horizontal, Theme.Layout.contentInset)

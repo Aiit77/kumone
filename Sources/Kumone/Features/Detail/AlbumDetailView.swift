@@ -16,7 +16,7 @@ struct AlbumDetailView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 20) {
                 if let album {
                     header(album)
                         .padding(.horizontal, Theme.Layout.contentInset)
