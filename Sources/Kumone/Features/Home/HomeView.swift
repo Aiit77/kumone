@@ -162,7 +162,9 @@ struct HomeView: View {
             if !model.radarPlaylists.isEmpty {
                 Shelf(title: "雷达歌单") {
                     ForEach(model.radarPlaylists) { radar in
-                        NavigationLink(value: Destination.playlist(radar.id)) {
+                        NavigationLink {
+                            PlaylistDetailView(playlistID: radar.id)
+                        } label: {
                             CoverCardBody(
                                 coverURL: radar.coverURL?.resizedImageURL(384),
                                 title: radar.title,
@@ -171,7 +173,7 @@ struct HomeView: View {
                                 playPlaylist(radar.id)
                             }
                         }
-                        .buttonStyle(.interactiveCard)
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -179,10 +181,12 @@ struct HomeView: View {
             if !model.toplists.isEmpty {
                 Shelf(title: "排行榜", seeAll: nil) {
                     ForEach(model.toplists) { toplist in
-                        NavigationLink(value: Destination.playlist(toplist.id)) {
+                        NavigationLink {
+                            PlaylistDetailView(playlistID: toplist.id)
+                        } label: {
                             toplistCard(toplist)
                         }
-                        .buttonStyle(.interactiveCard)
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -214,9 +218,11 @@ struct HomeView: View {
     private var featureCards: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 16) {
-                Spacer().frame(width: Theme.Layout.contentInset - 16)
+                Color.clear.frame(width: max(0, Theme.Layout.contentInset - 16), height: 1)
                 if account.isLoggedIn {
-                    NavigationLink(value: Destination.daily) {
+                    NavigationLink {
+                        DailySongsView()
+                    } label: {
                         FeatureCard(
                             title: "每日推荐",
                             subtitle: "根据你的口味生成",
@@ -225,7 +231,7 @@ struct HomeView: View {
                             showsDate: true
                         )
                     }
-                    .buttonStyle(.interactiveCard)
+                    .buttonStyle(.plain)
 
                     Button {
                         player.startFM()
@@ -265,7 +271,7 @@ struct HomeView: View {
                     }
                     .buttonStyle(.interactiveCard)
                 }
-                Spacer().frame(width: Theme.Layout.contentInset - 16)
+                Color.clear.frame(width: max(0, Theme.Layout.contentInset - 16), height: 1)
             }
         }
     }
@@ -294,7 +300,9 @@ struct HomeView: View {
     // MARK: - Cards
 
     private func playlistCard(_ playlist: PlaylistSummary) -> some View {
-        NavigationLink(value: Destination.playlist(playlist.id)) {
+        NavigationLink {
+            PlaylistDetailView(playlistID: playlist.id)
+        } label: {
             CoverCardBody(
                 coverURL: playlist.coverURL?.resizedImageURL(384),
                 title: playlist.name,
@@ -304,11 +312,13 @@ struct HomeView: View {
                 playPlaylist(playlist.id)
             }
         }
-        .buttonStyle(.interactiveCard)
+        .buttonStyle(.plain)
     }
 
     private func albumCard(_ album: AlbumSummary) -> some View {
-        NavigationLink(value: Destination.album(album.id)) {
+        NavigationLink {
+            AlbumDetailView(albumID: album.id)
+        } label: {
             CoverCardBody(
                 coverURL: album.picUrl?.resizedImageURL(384),
                 title: album.name,
@@ -321,11 +331,13 @@ struct HomeView: View {
                 }
             }
         }
-        .buttonStyle(.interactiveCard)
+        .buttonStyle(.plain)
     }
 
     private func artistCard(_ artist: ArtistSummary) -> some View {
-        NavigationLink(value: Destination.artist(artist.id)) {
+        NavigationLink {
+            ArtistDetailView(artistID: artist.id)
+        } label: {
             VStack(spacing: 10) {
                 CachedAsyncImage(url: artist.picUrl?.resizedImageURL(256))
                     .frame(width: 128, height: 128)
@@ -337,9 +349,8 @@ struct HomeView: View {
                     .lineLimit(1)
             }
             .frame(width: 140)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.interactiveCard)
+        .buttonStyle(.plain)
     }
 
     private func toplistCard(_ toplist: ToplistItem) -> some View {
@@ -485,6 +496,8 @@ struct CoverCardBody: View {
         }
         .frame(width: size, alignment: .leading)
         .contentShape(Rectangle())
+        #if os(macOS)
         .onHover { isHovering = $0 }
+        #endif
     }
 }

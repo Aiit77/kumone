@@ -189,8 +189,8 @@ struct PlayerBar: View {
     private var bottomFade: some View {
         LinearGradient(
             colors: [
-                Color(nsColor: .windowBackgroundColor).opacity(0),
-                Color(nsColor: .windowBackgroundColor).opacity(0.25),
+                Platform.windowBackgroundColor.opacity(0),
+                Platform.windowBackgroundColor.opacity(0.25),
             ],
             startPoint: .top, endPoint: .bottom
         )

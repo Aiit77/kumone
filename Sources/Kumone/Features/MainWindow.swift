@@ -40,9 +40,11 @@ struct MainWindow: View {
                 }
             }
         }
+        #if os(macOS)
         // Immersive now-playing page: hide the whole window toolbar
         // (sidebar toggle, navigation title, search field).
         .toolbar(player.showNowPlaying ? .hidden : .automatic, for: .windowToolbar)
+        #endif
         .playerChrome(detailWidth: detailWidth)
         .environment(\.openLogin, { showLogin = true })
         .task {

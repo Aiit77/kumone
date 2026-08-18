@@ -52,10 +52,20 @@ extension View {
     /// Glass background with a graceful material fallback on macOS 15.
     @ViewBuilder
     func compatGlass(interactive: Bool = false, in shape: some Shape) -> some View {
+        #if os(macOS)
         if #available(macOS 26.0, *) {
             self.glassEffect(interactive ? .regular.interactive() : .regular, in: shape)
         } else {
             self.background(.ultraThinMaterial, in: shape)
         }
+        #elseif os(iOS)
+        if #available(iOS 26.0, *) {
+            self.glassEffect(interactive ? .regular.interactive() : .regular, in: shape)
+        } else {
+            self.background(.ultraThinMaterial, in: shape)
+        }
+        #else
+        self.background(.ultraThinMaterial, in: shape)
+        #endif
     }
 }
