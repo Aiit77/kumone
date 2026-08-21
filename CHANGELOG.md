@@ -17,8 +17,10 @@ counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单
 
 - Toolbar availability check missed the iOS clause, breaking the iOS build against the iOS 18 target
 - Player bar's bottom fade no longer bleeds over the sidebar's corner
+- The iOS app-shell Xcode project was silently excluded by .gitignore; it is now reconstructed via XcodeGen (`ios/project.yml`) and checked in, with the missing launch-screen key added so the app no longer letterboxes
 - 工具栏可用性判断缺少 iOS 条件，导致 iOS 18 目标编译失败的问题
 - 播放条底部渐变不再溢出覆盖侧边栏底角
+- iOS app 壳工程曾被 .gitignore 静默排除；现改由 XcodeGen（`ios/project.yml`）生成并入库，并补上缺失的启动屏声明，App 不再上下黑边
 
 ### Improved / 改进
 
