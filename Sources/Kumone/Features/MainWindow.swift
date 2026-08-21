@@ -25,7 +25,7 @@ struct MainWindow: View {
                 }
         }
         .toolbar {
-            if #available(macOS 26.0, *) {
+            if #available(macOS 26.0, iOS 26.0, *) {
                 ToolbarItem(placement: .primaryAction) {
                     SearchFieldView { query in
                         path.append(Destination.search(query))
