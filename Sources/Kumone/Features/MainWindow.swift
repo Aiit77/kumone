@@ -10,9 +10,11 @@ struct MainWindow: View {
     @State private var path = NavigationPath()
     @State private var showLogin = false
     @State private var detailWidth: CGFloat = 0
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @State private var visibilityBeforeNowPlaying: NavigationSplitViewVisibility?
 
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             SidebarView(selection: $selection, showLogin: $showLogin)
                 .navigationSplitViewColumnWidth(min: 200, ideal: Theme.Layout.sidebarWidth, max: 280)
         } detail: {
@@ -52,6 +54,18 @@ struct MainWindow: View {
         }
         .onChange(of: settings.showDesktopLyrics) {
             DesktopLyricsController.shared.sync(with: settings.showDesktopLyrics)
+        }
+        // Collapse the sidebar while the immersive page is open: the split
+        // view's divider keeps its resize-cursor rect active even underneath
+        // an overlay, leaking the drag cursor onto the now-playing page (#6).
+        .onChange(of: player.showNowPlaying) {
+            if player.showNowPlaying {
+                visibilityBeforeNowPlaying = columnVisibility
+                columnVisibility = .detailOnly
+            } else {
+                columnVisibility = visibilityBeforeNowPlaying ?? .all
+                visibilityBeforeNowPlaying = nil
+            }
         }
         .sheet(isPresented: $showLogin) {
             LoginSheet()
