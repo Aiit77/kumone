@@ -1,7 +1,14 @@
 import SwiftUI
 
+private struct OpenLoginKey: EnvironmentKey {
+    static let defaultValue: () -> Void = {}
+}
+
 extension EnvironmentValues {
-    @Entry var openLogin: () -> Void = {}
+    var openLogin: () -> Void {
+        get { self[OpenLoginKey.self] }
+        set { self[OpenLoginKey.self] = newValue }
+    }
 }
 
 struct PlayerChromeModifier: ViewModifier {

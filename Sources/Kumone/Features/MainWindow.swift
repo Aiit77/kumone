@@ -25,7 +25,7 @@ struct MainWindow: View {
                 }
         }
         .toolbar {
-            if #available(macOS 26.0, *) {
+            if #available(macOS 26.0, iOS 26.0, *) {
                 ToolbarItem(placement: .primaryAction) {
                     SearchFieldView { query in
                         path.append(Destination.search(query))
@@ -40,9 +40,11 @@ struct MainWindow: View {
                 }
             }
         }
+        #if os(macOS)
         // Immersive now-playing page: hide the whole window toolbar
         // (sidebar toggle, navigation title, search field).
         .toolbar(player.showNowPlaying ? .hidden : .automatic, for: .windowToolbar)
+        #endif
         .playerChrome(detailWidth: detailWidth)
         .environment(\.openLogin, { showLogin = true })
         .task {
