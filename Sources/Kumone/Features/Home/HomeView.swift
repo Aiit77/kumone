@@ -107,7 +107,6 @@ final class HomeViewModel {
 struct HomeView: View {
     @Environment(AccountStore.self) private var account
     @Environment(PlayerService.self) private var player
-    @Environment(\.openLogin) private var openLogin
     @State private var model = HomeViewModel.shared
 
     var body: some View {
@@ -147,8 +146,12 @@ struct HomeView: View {
 
     private var loadedBody: some View {
         LazyVStack(alignment: .leading, spacing: 34) {
-            featureCards
-                .padding(.top, 8)
+            // Anonymous users go straight to recommended playlists;
+            // the login entry lives in the sidebar / 我的 tab only.
+            if account.isLoggedIn {
+                featureCards
+                    .padding(.top, 8)
+            }
 
             if !model.recommendPlaylists.isEmpty {
                 Shelf(title: "推荐歌单") {
@@ -255,18 +258,6 @@ struct HomeView: View {
                             icon: "heart.circle.fill",
                             gradient: [Color(red: 0.85, green: 0.19, blue: 0.41),
                                        Color(red: 0.98, green: 0.42, blue: 0.34)]
-                        )
-                    }
-                    .buttonStyle(.interactiveCard)
-                } else {
-                    Button {
-                        openLogin()
-                    } label: {
-                        FeatureCard(
-                            title: "登录网易云音乐",
-                            subtitle: "解锁每日推荐、私人漫游与心动模式",
-                            icon: "person.crop.circle.badge.checkmark",
-                            gradient: [Theme.accentDeep, Theme.accent]
                         )
                     }
                     .buttonStyle(.interactiveCard)
