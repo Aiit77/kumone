@@ -20,7 +20,7 @@ struct PlayerBar: View {
         .compatGlass(interactive: true, in: Capsule())
         .overlay(Capsule().strokeBorder(.primary.opacity(0.06), lineWidth: 0.5))
         .padding(.horizontal, 16)
-        .padding(.bottom, 10)
+        .padding(.bottom, Theme.Layout.playerBarBottomMargin)
         .background(alignment: .bottom) { bottomFade }
     }
 
@@ -195,7 +195,6 @@ struct PlayerBar: View {
             startPoint: .top, endPoint: .bottom
         )
         .frame(height: 50)
-        .padding(.horizontal, -16)
         .allowsHitTesting(false)
     }
 }

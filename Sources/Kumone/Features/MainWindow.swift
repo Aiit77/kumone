@@ -9,7 +9,6 @@ struct MainWindow: View {
     @State private var selection: SidebarItem = .home
     @State private var path = NavigationPath()
     @State private var showLogin = false
-    @State private var searchText = ""
     @State private var detailWidth: CGFloat = 0
 
     var body: some View {

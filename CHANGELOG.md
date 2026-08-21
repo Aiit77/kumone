@@ -6,6 +6,25 @@
 section the English bullets come first, followed by their Simplified Chinese
 counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单行。
 
+## 0.2.0 - 2026-08-21
+
+### Added / 新增
+
+- iOS and iPadOS support: cross-platform core (KumoneCore), adaptive layouts for compact and regular widths, and an `ios/` app workspace (#5, contributed by @MikeChongCan)
+- iOS 与 iPadOS 支持：跨平台核心（KumoneCore）、紧凑/常规宽度自适应布局，以及 `ios/` 应用工程（#5，由 @MikeChongCan 贡献）
+
+### Fixed / 修复
+
+- Toolbar availability check missed the iOS clause, breaking the iOS build against the iOS 18 target
+- Player bar's bottom fade no longer bleeds over the sidebar's corner
+- 工具栏可用性判断缺少 iOS 条件，导致 iOS 18 目标编译失败的问题
+- 播放条底部渐变不再溢出覆盖侧边栏底角
+
+### Improved / 改进
+
+- Player chrome clearance is now derived from shared layout constants instead of scattered magic numbers
+- 播放条净空高度改由共享布局常量推导，替代分散的魔数
+
 ## 0.1.9 - 2026-08-17
 
 ### Fixed / 修复
