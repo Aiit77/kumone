@@ -6,6 +6,13 @@
 section the English bullets come first, followed by their Simplified Chinese
 counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单行。
 
+## 0.2.3 - 2026-08-22
+
+### Fixed / 修复
+
+- iOS playback now resumes automatically after audio interruptions (phone calls, WeChat voice messages) end; playback also pauses when headphones are unplugged
+- iOS 音频被打断（来电、微信语音等）结束后现在会自动恢复播放；拔出耳机时自动暂停
+
 ## 0.2.2 - 2026-08-22
 
 ### Fixed / 修复
