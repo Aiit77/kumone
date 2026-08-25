@@ -6,6 +6,13 @@
 section the English bullets come first, followed by their Simplified Chinese
 counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单行。
 
+## 0.3.4 - 2026-08-25
+
+### Fixed / 修复
+
+- Now Playing screen was misaligned on iPhone whenever a track was playing — content and the top-right lyrics button spilled off the right edge. The transport-control row was a fixed-width `HStack`; with the like button present it summed to ~430pt, wider than any iPhone, so it overflowed and stretched the whole layout (and its corner overlays) past the screen edge. Controls now lay out in equal-width slots that fit any device, and the page is pinned to the screen width. (#22)
+- 播放界面在有歌曲播放时于 iPhone 上错位——内容和右上角歌词按钮溢出到屏幕右侧之外。底部控制条原本是固定宽度的 `HStack`，加上「喜欢」按钮后总宽约 430pt、比任何 iPhone 都宽，于是溢出并把整个布局（含四角浮层）撑到屏幕之外。现在控制按钮按等宽均分排布，可适配任意机型，并将页面钉定到屏幕宽度。（#22）
+
 ## 0.3.3 - 2026-08-25
 
 ### Improved / 改进
