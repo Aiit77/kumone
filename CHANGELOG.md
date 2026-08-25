@@ -6,6 +6,13 @@
 section the English bullets come first, followed by their Simplified Chinese
 counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单行。
 
+## 0.3.4 - 2026-08-25
+
+### Fixed / 修复
+
+- Window no longer grows by the sidebar's width every time the immersive now-playing page is dismissed. The window minimum was expressed as a SwiftUI content constraint (`.frame(minWidth:)` + `.windowResizability(.contentMinSize)`), so while the now-playing page collapsed the sidebar the whole 1020pt minimum landed on the detail column; restoring the sidebar then added its width on top and the window was forced to 1248pt. The minimum is now reduced by the sidebar's width while it is collapsed, so the restored total lands back on 1020pt. Measured: 1020→1020, 1100→1100 (previously 1248 / 1328).
+- 退出沉浸式播放页时窗口不再每次都变宽一个侧边栏的宽度。窗口最小宽度原本是通过 SwiftUI 的内容约束（`.frame(minWidth:)` + `.windowResizability(.contentMinSize)`）表达的，而播放页会折叠侧边栏，这时 1020pt 的下限全部落到了详情列上；恢复侧边栏后再加上它的宽度，窗口就被强行撑到 1248pt。现在侧边栏折叠期间会把该下限减去侧边栏宽度，恢复后总和正好回到 1020pt。实测：1020→1020、1100→1100（此前为 1248 / 1328）。
+
 ## 0.3.3 - 2026-08-25
 
 ### Improved / 改进

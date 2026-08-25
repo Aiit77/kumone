@@ -20,7 +20,9 @@ public struct KumoneApp: App {
                 .environmentObject(toasts)
                 .tint(Theme.accent)
                 .preferredColorScheme(settings.appearance.colorScheme)
-                .frame(minWidth: Theme.Layout.minWindowWidth,
+                .frame(minWidth: player.showNowPlaying
+                           ? Theme.Layout.minWindowWidthSidebarCollapsed
+                           : Theme.Layout.minWindowWidth,
                        minHeight: Theme.Layout.minWindowHeight)
         }
         .defaultSize(width: Theme.Layout.defaultWindowWidth,
