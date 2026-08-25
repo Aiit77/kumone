@@ -6,6 +6,13 @@
 section the English bullets come first, followed by their Simplified Chinese
 counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单行。
 
+## 0.3.3 - 2026-08-25
+
+### Improved / 改进
+
+- iOS 16–25 glass tab bar rebuilt to match Telegram's Liquid Glass bar 1:1 (studied from telegram-ios `TabBarComponent` / `LiquidLensView`): the selection is a bar-height capsule using Telegram's own faint tint — a subtle darkening in light, a subtle lightening in dark — instead of a bright chip, and unselected items use an 80%-black filled icon + 10pt label. The pill is now **interactive**: drag it and it tracks your finger, switching tabs live and settling with a spring on release; a tap slides it there.
+- iOS 16–25 玻璃 Tab Bar 按 Telegram 的 Liquid Glass 栏 1:1 重制（参照 telegram-ios 的 `TabBarComponent` / `LiquidLensView`）：选中块改为与栏等高的胶囊、采用 Telegram 同款的淡淡着色（浅色下轻微压暗、深色下轻微提亮），不再是过亮的方块；未选中项用 80% 黑的填充图标 + 10pt 文字。选中滑块现在**可交互**：拖动它会跟随手指在标签间滑动、实时切换页面，松手后以弹簧动画归位；点按则滑动过去。
+
 ## 0.3.2 - 2026-08-25
 
 ### Fixed / 修复
