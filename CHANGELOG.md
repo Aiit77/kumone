@@ -6,6 +6,18 @@
 section the English bullets come first, followed by their Simplified Chinese
 counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单行。
 
+## 0.3.4 - 2026-08-26
+
+### Added / 新增
+
+- Dock menu (right-click the Dock icon): play/pause, next, previous, shuffle, a repeat submenu, and the last six places playback started from — playlists, albums, artists, daily recommendations, cloud disk, the play-record list, heartbeat mode and personal FM. Picking one reloads it and plays; heartbeat mode and personal FM are regenerated rather than resumed, since neither is a fixed list.
+- Dock 菜单（右键 Dock 图标）：播放/暂停、下一首、上一首、随机播放、循环模式子菜单，以及最近播放过的 6 个来源——歌单、专辑、歌手、每日推荐、音乐云盘、最近播放、心动模式、私人漫游。点击即重新载入并播放；心动模式与私人漫游会重新生成而非恢复原队列，因为它们本就不是固定歌单。
+
+### Fixed / 修复
+
+- Immersive now-playing page no longer leaves a toolbar's worth of empty space at the top: the window toolbar is hidden there, but SwiftUI kept reserving its safe area, pushing the close button ~68pt down from the window edge. The button's insets are also even now (20pt on both edges, previously 16pt top / 20pt leading). iOS keeps its safe area, where the inset is the status bar / notch.
+- 沉浸式播放页顶部不再多出一个工具栏高度的空白：该页面隐藏了窗口工具栏，但 SwiftUI 仍为其保留安全区域，把收起按钮推到了距窗口顶部约 68pt 的位置。按钮四边间距也统一为 20pt（此前为上 16pt / 左 20pt）。iOS 保持原有安全区域行为——那里的内边距是状态栏 / 灵动岛。
+
 ## 0.3.3 - 2026-08-25
 
 ### Improved / 改进

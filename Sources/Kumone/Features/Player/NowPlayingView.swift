@@ -38,7 +38,7 @@ struct NowPlayingView: View {
                         .background(.white.opacity(0.12), in: Circle())
                 }
                 .buttonStyle(.pressable)
-                .padding(.top, 16)
+                .padding(.top, 20)
                 .padding(.leading, 20)
             }
             .overlay(alignment: .topTrailing) {
@@ -55,11 +55,18 @@ struct NowPlayingView: View {
                             .background(.white.opacity(0.12), in: Circle())
                     }
                     .buttonStyle(.pressable)
-                    .padding(.top, 16)
+                    .padding(.top, 20)
                     .padding(.trailing, 20)
                 }
             }
         }
+        #if os(macOS)
+        // The window toolbar is hidden while this page is up, but SwiftUI keeps
+        // reserving its safe area, which pushed the whole immersive layout —
+        // close button included — a toolbar's height down from the window top.
+        // iOS keeps its safe area: there the inset is the status bar / notch.
+        .ignoresSafeArea()
+        #endif
         .preferredColorScheme(.dark)
         .task(id: player.currentTrack?.id) {
             await loadArtwork()
