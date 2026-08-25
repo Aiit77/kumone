@@ -37,6 +37,11 @@ public struct IOSMainWindow: View {
         .environment(\.openLogin, { showLogin = true })
         .task {
             await account.bootstrap()
+            // Quiet auto-check on launch: only surfaces a sheet if newer.
+            IOSUpdater.shared.check(interactive: false)
+        }
+        .sheet(isPresented: Bindable(IOSUpdater.shared).showSheet) {
+            IOSUpdaterSheet()
         }
         .sheet(isPresented: $showLogin) {
             LoginSheet()

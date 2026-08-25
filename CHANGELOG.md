@@ -6,6 +6,13 @@
 section the English bullets come first, followed by their Simplified Chinese
 counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单行。
 
+## 0.2.7 - 2026-08-25
+
+### Added / 新增
+
+- iOS in-app auto-update for TrollStore devices (Dopamine-style): checks GitHub on launch and from Settings → About → Check for Updates, shows a circular download-progress ring, and hands the IPA to TrollStore via `apple-magnifier://install?url=` for one-tap install; plain sideloads fall back to opening the release page (README documents the TrollStore requirement)
+- iOS 应用内自动更新（针对 TrollStore / 巨魔设备，参考 Dopamine）：启动时与「设置 → 关于 → 检查更新」查询 GitHub，带圆环下载进度，并通过 `apple-magnifier://install?url=` 移交 TrollStore 一键安装；普通侧载则降级为打开发布页（README 已注明仅限 TrollStore）
+
 ## 0.2.6 - 2026-08-25
 
 ### Fixed / 修复
