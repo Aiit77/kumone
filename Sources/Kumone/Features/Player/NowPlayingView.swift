@@ -400,6 +400,11 @@ struct NowPlayingView: View {
             player.seek(to: line.time)
         } label: {
             VStack(alignment: .leading, spacing: 5) {
+                if settings.showLyricsRomaji, let romaji = line.romaji {
+                    Text(romaji)
+                        .font(.system(size: isActive ? 15 : 13, weight: .medium))
+                        .foregroundStyle(.white.opacity(isActive ? 0.7 : 0.35))
+                }
                 Text(line.text.isEmpty ? "♪" : line.text)
                     .font(.system(size: isActive ? 26 : 20, weight: isActive ? .bold : .semibold))
                     .foregroundStyle(.white.opacity(isActive ? 1 : 0.45))
