@@ -52,6 +52,22 @@ enum AppAppearance: String, CaseIterable, Identifiable {
     }
 }
 
+#if os(iOS)
+enum NowPlayingMode: String, CaseIterable, Identifiable {
+    case classic
+    case immersive
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .classic: return String(localized: "经典模式")
+        case .immersive: return String(localized: "沉浸模式")
+        }
+    }
+}
+#endif
+
 @MainActor
 final class SettingsManager: ObservableObject {
     static let shared = SettingsManager()
@@ -59,6 +75,9 @@ final class SettingsManager: ObservableObject {
     private enum Keys {
         static let quality = "settings.audioQuality"
         static let appearance = "settings.appearance"
+        #if os(iOS)
+        static let nowPlayingMode = "settings.nowPlayingMode"
+        #endif
         static let showTranslation = "settings.showLyricsTranslation"
         static let showRomaji = "settings.showLyricsRomaji"
         static let volume = "settings.volume"
@@ -74,6 +93,12 @@ final class SettingsManager: ObservableObject {
     @Published var appearance: AppAppearance {
         didSet { UserDefaults.standard.set(appearance.rawValue, forKey: Keys.appearance) }
     }
+
+    #if os(iOS)
+    @Published var nowPlayingMode: NowPlayingMode {
+        didSet { UserDefaults.standard.set(nowPlayingMode.rawValue, forKey: Keys.nowPlayingMode) }
+    }
+    #endif
 
     @Published var showLyricsTranslation: Bool {
         didSet { UserDefaults.standard.set(showLyricsTranslation, forKey: Keys.showTranslation) }
@@ -98,6 +123,9 @@ final class SettingsManager: ObservableObject {
         let defaults = UserDefaults.standard
         audioQuality = defaults.string(forKey: Keys.quality).flatMap(AudioQuality.init) ?? .exhigh
         appearance = defaults.string(forKey: Keys.appearance).flatMap(AppAppearance.init) ?? .auto
+        #if os(iOS)
+        nowPlayingMode = defaults.string(forKey: Keys.nowPlayingMode).flatMap(NowPlayingMode.init) ?? .immersive
+        #endif
         showLyricsTranslation = defaults.object(forKey: Keys.showTranslation) as? Bool ?? true
         showLyricsRomaji = defaults.object(forKey: Keys.showRomaji) as? Bool ?? false
         enableUnblock = defaults.object(forKey: Keys.unblock) as? Bool ?? true
