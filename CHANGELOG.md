@@ -11,7 +11,15 @@ counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单
 ### Fixed / 修复
 
 - SMS login called endpoints that do not exist (`/sms/sendcode`, `/login/cellphone`); now uses the real ones from upstream — `/api/sms/captcha/sent` and `/api/w/login/cellphone` — with the required fields
+- iOS: opening an album/artist from Collections misrouted (went back to Collections, showed the target only after going back) — library navigation is now fully value-based (#13)
+- Gray-track unblocking was fully broken on iOS: the App Transport Security cleartext exception was set via a nonexistent build setting and never shipped, so the HTTP third-party sources were blocked; ATS now ships correctly and Kuwo/Kugou use HTTPS where possible (#15)
+- The now-playing page merged shuffle and repeat into one button, making it impossible to turn shuffle on; they are now separate controls (#18)
+- macOS: Home/Explore content no longer widens after closing the now-playing page (#19, contributed by @baisensenseng)
 - 短信登录调用了不存在的接口（`/sms/sendcode`、`/login/cellphone`）；现改为上游实际使用的 `/api/sms/captcha/sent` 与 `/api/w/login/cellphone`，并带上必需字段
+- iOS：从「我的收藏」点开专辑/歌手会路由错乱（先回到收藏页、返回后才显示目标）—— 音乐库导航现已全部改为值式路由（#13）
+- iOS 灰色歌曲解锁完全失效：App Transport Security 明文例外被写成了不存在的构建设置、从未生效，导致 HTTP 第三方音源被拦；现 ATS 正确打包，酷我 / 酷狗尽量走 HTTPS（#15）
+- 播放页把随机和循环合并成了一个按钮，导致无法开启随机播放；现拆为两个独立控制（#18）
+- macOS：关闭播放页后首页/精选内容不再变宽（#19，由 @baisensenseng 贡献）
 
 ## 0.2.5 - 2026-08-23
 
