@@ -6,6 +6,13 @@
 section the English bullets come first, followed by their Simplified Chinese
 counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单行。
 
+## 0.3.5 - 2026-08-25
+
+### Fixed / 修复
+
+- macOS: the window no longer grows by the sidebar's width every time the immersive now-playing page is dismissed. The window minimum was a SwiftUI content constraint, so while the now-playing page collapsed the sidebar the whole 1020pt minimum landed on the detail column; restoring the sidebar then forced the window to 1248pt. The minimum is now reduced by the sidebar width while it is collapsed. Thanks @XerWandeRer (#23,真正修复 #19).
+- macOS：退出沉浸式播放页时窗口不再每次都变宽一个侧边栏的宽度。窗口最小宽度原本是 SwiftUI 内容约束，播放页折叠侧边栏时 1020pt 下限全落在详情列上，恢复侧边栏后被撑到 1248pt；现在折叠期间会减去侧边栏宽度。感谢 @XerWandeRer（#23，真正修复 #19）。
+
 ## 0.3.4 - 2026-08-25
 
 ### Fixed / 修复
