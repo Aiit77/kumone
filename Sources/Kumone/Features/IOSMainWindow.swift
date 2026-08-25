@@ -81,58 +81,56 @@ public struct IOSMainWindow: View {
         .animation(.spring(duration: 0.3), value: toasts.current)
     }
 
+    @ViewBuilder
     private var tabInterface: some View {
+        if usesNativeTabBar {
+            nativeTabInterface
+        } else {
+            customTabInterface
+        }
+    }
+
+    /// iOS 26+: the system TabView renders the real Liquid Glass bar.
+    private var nativeTabInterface: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
-                NavigationStack {
-                    HomeView()
-                        .appDestinations()
-                }
-                .toolbar(usesNativeTabBar ? .automatic : .hidden, for: .tabBar)
-                .tabItem {
-                    Label("推荐", systemImage: "house.fill")
-                }
-                .tag(IOSTab.home)
+                tabStack(.home) { HomeView() }
+                    .tabItem { Label("推荐", systemImage: "house.fill") }
+                    .tag(IOSTab.home)
+                tabStack(.explore) { ExploreView() }
+                    .tabItem { Label("精选", systemImage: "square.grid.2x2.fill") }
+                    .tag(IOSTab.explore)
+                tabStack(.fm) { FMView() }
+                    .tabItem { Label("漫游", systemImage: "wave.3.right.circle.fill") }
+                    .tag(IOSTab.fm)
+                tabStack(.search) { SearchView(query: "") }
+                    .tabItem { Label("搜索", systemImage: "magnifyingglass") }
+                    .tag(IOSTab.search)
+                tabStack(.library) { IOSLibraryView(showLogin: $showLogin) }
+                    .tabItem { Label("我的", systemImage: "person.crop.circle.fill") }
+                    .tag(IOSTab.library)
+            }
+            if player.hasCurrentTrack {
+                IOSMiniPlayerBar()
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 58)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(AppAnimation.standard, value: player.hasCurrentTrack)
+    }
 
-                NavigationStack {
-                    ExploreView()
-                        .appDestinations()
-                }
-                .toolbar(usesNativeTabBar ? .automatic : .hidden, for: .tabBar)
-                .tabItem {
-                    Label("精选", systemImage: "square.grid.2x2.fill")
-                }
-                .tag(IOSTab.explore)
-
-                NavigationStack {
-                    FMView()
-                        .appDestinations()
-                }
-                .toolbar(usesNativeTabBar ? .automatic : .hidden, for: .tabBar)
-                .tabItem {
-                    Label("漫游", systemImage: "wave.3.right.circle.fill")
-                }
-                .tag(IOSTab.fm)
-
-                NavigationStack {
-                    SearchView(query: "")
-                        .appDestinations()
-                }
-                .toolbar(usesNativeTabBar ? .automatic : .hidden, for: .tabBar)
-                .tabItem {
-                    Label("搜索", systemImage: "magnifyingglass")
-                }
-                .tag(IOSTab.search)
-
-                NavigationStack {
-                    IOSLibraryView(showLogin: $showLogin)
-                        .appDestinations()
-                }
-                .toolbar(usesNativeTabBar ? .automatic : .hidden, for: .tabBar)
-                .tabItem {
-                    Label("我的", systemImage: "person.crop.circle.fill")
-                }
-                .tag(IOSTab.library)
+    /// iOS 16–25: a manual container (no system TabView) so there is exactly
+    /// one — our simulated-glass — tab bar. All five stacks stay alive to
+    /// preserve their navigation state; only the selected one is shown.
+    private var customTabInterface: some View {
+        ZStack(alignment: .bottom) {
+            ZStack {
+                page(.home) { tabStack(.home) { HomeView() } }
+                page(.explore) { tabStack(.explore) { ExploreView() } }
+                page(.fm) { tabStack(.fm) { FMView() } }
+                page(.search) { tabStack(.search) { SearchView(query: "") } }
+                page(.library) { tabStack(.library) { IOSLibraryView(showLogin: $showLogin) } }
             }
 
             VStack(spacing: 8) {
@@ -141,18 +139,38 @@ public struct IOSMainWindow: View {
                         .padding(.horizontal, 12)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                if !usesNativeTabBar {
-                    GlassTabBar(items: Self.tabItems, selection: $selectedTab) { tab in
-                        popToRoot(tab)
-                    }
+                GlassTabBar(items: Self.tabItems, selection: $selectedTab) { tab in
+                    popToRoot(tab)
                 }
             }
-            // On iOS 26 the native (Liquid Glass) tab bar owns the bottom, so
-            // the mini player floats just above it; on older systems our
-            // custom glass bar sits at the very bottom.
-            .padding(.bottom, usesNativeTabBar ? 58 : 6)
+            .padding(.bottom, 6)
         }
         .animation(AppAnimation.standard, value: player.hasCurrentTrack)
+    }
+
+    @ViewBuilder
+    private func tabStack<Content: View>(_ tab: IOSTab, @ViewBuilder _ content: () -> Content) -> some View {
+        NavigationStack(path: binding(for: tab)) {
+            content().appDestinations()
+        }
+    }
+
+    @ViewBuilder
+    private func page<Content: View>(_ tab: IOSTab, @ViewBuilder _ content: () -> Content) -> some View {
+        content()
+            .opacity(selectedTab == tab ? 1 : 0)
+            .allowsHitTesting(selectedTab == tab)
+            .zIndex(selectedTab == tab ? 1 : 0)
+    }
+
+    private func binding(for tab: IOSTab) -> Binding<NavigationPath> {
+        switch tab {
+        case .home: return $homePath
+        case .explore: return $explorePath
+        case .fm: return $fmPath
+        case .search: return $searchPath
+        case .library: return $libraryPath
+        }
     }
 }
 

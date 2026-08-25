@@ -6,6 +6,18 @@
 section the English bullets come first, followed by their Simplified Chinese
 counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单行。
 
+## 0.3.1 - 2026-08-25
+
+### Fixed / 修复
+
+- iOS 16–25: removed the duplicate system tab bar that was showing behind the glass tab bar. The pre-26 layout no longer hosts a `TabView` (each tab is a persistent `NavigationStack` shown/hidden in place), so there is now exactly one tab bar.
+- iOS 16–25：修复玻璃 Tab Bar 背后还叠着一个系统原生 Tab Bar 的问题。26 以下的布局不再使用 `TabView`（每个标签为常驻的 `NavigationStack`，就地显隐），现在只有一个 Tab Bar。
+
+### Improved / 改进
+
+- iOS 16–25 glass tab bar: the selected tab now sits on a brighter, dimensional glass chip — a Telegram-style continuous-rounded squircle with a specular highlight, hairline rim, and soft shadow — that clearly lifts off the bar, instead of the previous flat wash.
+- iOS 16–25 玻璃 Tab Bar：选中项改为更明亮、有立体感的玻璃方块——Telegram 风格的连续圆角方块，带高光、细描边与柔和投影——明显浮于栏面，不再是之前扁平的一层。
+
 ## 0.2.8 - 2026-08-25
 
 ### Added / 新增

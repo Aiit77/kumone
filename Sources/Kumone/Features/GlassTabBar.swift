@@ -1,10 +1,12 @@
 #if os(iOS)
 import SwiftUI
 
-/// A floating capsule tab bar. On iOS 26+ it uses the system Liquid Glass;
-/// on iOS 16–25 it approximates it (Telegram-style): a blurred material
-/// capsule with a bright top-edge highlight, a hairline rim, and a soft
-/// drop shadow, so it reads as glass even before the OS supports it.
+/// A floating capsule tab bar for iOS 16–25 (older systems have no Liquid
+/// Glass). It approximates it: a blurred material capsule with an edge
+/// highlight and hairline rim, and a **sliding glass lozenge** behind the
+/// active tab (matchedGeometryEffect) that reads like a real raised glass
+/// chip — brighter and more opaque than the bar itself so it lifts, the way
+/// Telegram's selected pill does.
 struct GlassTabBar: View {
     struct Item: Identifiable {
         let tab: IOSTab
@@ -15,30 +17,31 @@ struct GlassTabBar: View {
 
     let items: [Item]
     @Binding var selection: IOSTab
-    /// Re-select the active tab (e.g. pop to root).
     var onReselect: (IOSTab) -> Void = { _ in }
 
+    @Namespace private var pillNamespace
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 4) {
             ForEach(items) { item in
                 tabButton(item)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 7)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 6)
         .background { glassCapsule }
-        .clipShape(Capsule())
         .overlay {
             Capsule().strokeBorder(
-                LinearGradient(
-                    colors: [.white.opacity(0.35), .white.opacity(0.06)],
-                    startPoint: .top, endPoint: .bottom
-                ),
-                lineWidth: 0.6
+                LinearGradient(colors: [.white.opacity(0.45), .white.opacity(0.05)],
+                               startPoint: .top, endPoint: .bottom),
+                lineWidth: 0.7
             )
         }
-        .shadow(color: .black.opacity(0.18), radius: 14, y: 6)
-        .padding(.horizontal, 44)
+        .clipShape(Capsule())
+        .shadow(color: .black.opacity(0.24), radius: 18, y: 8)
+        .padding(.horizontal, 40)
+        .animation(.spring(response: 0.36, dampingFraction: 0.72), value: selection)
     }
 
     private func tabButton(_ item: GlassTabBar.Item) -> some View {
@@ -47,26 +50,23 @@ struct GlassTabBar: View {
             if isSelected {
                 onReselect(item.tab)
             } else {
-                withAnimation(.spring(response: 0.32, dampingFraction: 0.78)) {
-                    selection = item.tab
-                }
+                selection = item.tab
             }
         } label: {
             VStack(spacing: 3) {
                 Image(systemName: item.icon)
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: 18, weight: .semibold))
                     .symbolVariant(isSelected ? .fill : .none)
                 Text(item.title)
                     .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
             }
             .foregroundStyle(isSelected ? AnyShapeStyle(Theme.accent) : AnyShapeStyle(.secondary))
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
+            .padding(.vertical, 7)
             .background {
                 if isSelected {
-                    Capsule(style: .continuous)
-                        .fill(Theme.accent.opacity(0.14))
-                        .padding(.horizontal, 4)
+                    glassLozenge
+                        .matchedGeometryEffect(id: "activePill", in: pillNamespace)
                 }
             }
             .contentShape(Rectangle())
@@ -74,22 +74,42 @@ struct GlassTabBar: View {
         .buttonStyle(.plain)
     }
 
+    /// The sliding selection lozenge — a raised glass chip. It sits on
+    /// `.regularMaterial` (more opaque than the bar's ultra-thin blur) plus a
+    /// bright, scheme-aware wash so it clearly lifts off the bar, topped with
+    /// a specular highlight and a soft drop shadow for dimension.
+    private var glassLozenge: some View {
+        let isDark = colorScheme == .dark
+        return RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(.regularMaterial)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(.white.opacity(isDark ? 0.14 : 0.60))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous).fill(
+                    LinearGradient(
+                        colors: [.white.opacity(isDark ? 0.30 : 0.75), .clear],
+                        startPoint: .top, endPoint: .center
+                    )
+                )
+                .blendMode(.plusLighter)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(.white.opacity(isDark ? 0.28 : 0.65), lineWidth: 0.7)
+            )
+            .shadow(color: .black.opacity(isDark ? 0.38 : 0.14), radius: 5, y: 2)
+    }
+
     @ViewBuilder
     private var glassCapsule: some View {
-        if #available(iOS 26.0, *) {
-            Color.clear.glassEffect(.regular, in: Capsule())
-        } else {
-            // Simulated Liquid Glass for iOS 16–25.
-            ZStack {
-                Capsule().fill(.ultraThinMaterial)
-                // Top-edge highlight → fake light refraction.
-                LinearGradient(
-                    colors: [.white.opacity(0.22), .white.opacity(0.03), .clear],
-                    startPoint: .top, endPoint: .center
-                )
+        ZStack {
+            Capsule().fill(.ultraThinMaterial)
+            LinearGradient(colors: [.white.opacity(0.20), .white.opacity(0.02), .clear],
+                           startPoint: .top, endPoint: .center)
                 .clipShape(Capsule())
                 .blendMode(.plusLighter)
-            }
         }
     }
 }
