@@ -1,12 +1,11 @@
 #if os(iOS)
 import SwiftUI
 
-/// A floating capsule tab bar for iOS 16–25 (older systems have no Liquid
-/// Glass). It approximates it: a blurred material capsule with an edge
-/// highlight and hairline rim, and a **sliding glass lozenge** behind the
-/// active tab (matchedGeometryEffect) that reads like a real raised glass
-/// chip — brighter and more opaque than the bar itself so it lifts, the way
-/// Telegram's selected pill does.
+/// A floating tab bar for iOS 16–25 (which have no native Liquid Glass). It is
+/// tuned to match the iOS 26 system tab bar 1:1: a near-full-width frosted
+/// capsule, filled primary-colour icons, an accent-tinted selected item, and a
+/// **subtle lighter-glass pill** that slides behind the active tab
+/// (matchedGeometryEffect) — understated, the way the real one is.
 struct GlassTabBar: View {
     struct Item: Identifiable {
         let tab: IOSTab
@@ -23,49 +22,42 @@ struct GlassTabBar: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 0) {
             ForEach(items) { item in
                 tabButton(item)
             }
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 6)
-        .background { glassCapsule }
+        .background { Capsule().fill(.regularMaterial) }
         .overlay {
-            Capsule().strokeBorder(
-                LinearGradient(colors: [.white.opacity(0.45), .white.opacity(0.05)],
-                               startPoint: .top, endPoint: .bottom),
-                lineWidth: 0.7
-            )
+            Capsule().strokeBorder(.white.opacity(colorScheme == .dark ? 0.10 : 0.35),
+                                   lineWidth: 0.5)
         }
         .clipShape(Capsule())
-        .shadow(color: .black.opacity(0.24), radius: 18, y: 8)
-        .padding(.horizontal, 40)
-        .animation(.spring(response: 0.36, dampingFraction: 0.72), value: selection)
+        .shadow(color: .black.opacity(colorScheme == .dark ? 0.30 : 0.12), radius: 14, y: 5)
+        .padding(.horizontal, 14)
+        .animation(.spring(response: 0.34, dampingFraction: 0.78), value: selection)
     }
 
     private func tabButton(_ item: GlassTabBar.Item) -> some View {
         let isSelected = selection == item.tab
         return Button {
-            if isSelected {
-                onReselect(item.tab)
-            } else {
-                selection = item.tab
-            }
+            if isSelected { onReselect(item.tab) } else { selection = item.tab }
         } label: {
             VStack(spacing: 3) {
                 Image(systemName: item.icon)
-                    .font(.system(size: 18, weight: .semibold))
-                    .symbolVariant(isSelected ? .fill : .none)
+                    .font(.system(size: 21, weight: .semibold))
+                    .symbolVariant(.fill)
                 Text(item.title)
-                    .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
+                    .font(.system(size: 11, weight: isSelected ? .semibold : .medium))
             }
-            .foregroundStyle(isSelected ? AnyShapeStyle(Theme.accent) : AnyShapeStyle(.secondary))
+            .foregroundStyle(isSelected ? AnyShapeStyle(Theme.accent) : AnyShapeStyle(.primary))
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 7)
+            .padding(.vertical, 8)
             .background {
                 if isSelected {
-                    glassLozenge
+                    selectionPill
                         .matchedGeometryEffect(id: "activePill", in: pillNamespace)
                 }
             }
@@ -74,43 +66,19 @@ struct GlassTabBar: View {
         .buttonStyle(.plain)
     }
 
-    /// The sliding selection lozenge — a raised glass chip. It sits on
-    /// `.regularMaterial` (more opaque than the bar's ultra-thin blur) plus a
-    /// bright, scheme-aware wash so it clearly lifts off the bar, topped with
-    /// a specular highlight and a soft drop shadow for dimension.
-    private var glassLozenge: some View {
+    /// The sliding selection indicator — a subtle lighter-glass pill, hugging
+    /// the content with a gap to its neighbours, matching the low-contrast
+    /// highlight the native iOS 26 bar draws behind the selected tab.
+    private var selectionPill: some View {
         let isDark = colorScheme == .dark
-        return RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(.regularMaterial)
+        return RoundedRectangle(cornerRadius: 22, style: .continuous)
+            .fill(.white.opacity(isDark ? 0.13 : 0.55))
             .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(.white.opacity(isDark ? 0.14 : 0.60))
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .strokeBorder(.white.opacity(isDark ? 0.14 : 0.5), lineWidth: 0.5)
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous).fill(
-                    LinearGradient(
-                        colors: [.white.opacity(isDark ? 0.30 : 0.75), .clear],
-                        startPoint: .top, endPoint: .center
-                    )
-                )
-                .blendMode(.plusLighter)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(.white.opacity(isDark ? 0.28 : 0.65), lineWidth: 0.7)
-            )
-            .shadow(color: .black.opacity(isDark ? 0.38 : 0.14), radius: 5, y: 2)
-    }
-
-    @ViewBuilder
-    private var glassCapsule: some View {
-        ZStack {
-            Capsule().fill(.ultraThinMaterial)
-            LinearGradient(colors: [.white.opacity(0.20), .white.opacity(0.02), .clear],
-                           startPoint: .top, endPoint: .center)
-                .clipShape(Capsule())
-                .blendMode(.plusLighter)
-        }
+            .shadow(color: .black.opacity(isDark ? 0.18 : 0.06), radius: 3, y: 1)
+            .padding(.horizontal, 8)
     }
 }
 #endif

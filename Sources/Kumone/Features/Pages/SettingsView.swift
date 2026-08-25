@@ -64,9 +64,7 @@ struct SettingsView: View {
                 } label: {
                     Label("检查更新", systemImage: "arrow.triangle.2.circlepath")
                 }
-                Text(IOSUpdater.isTrollStoreAvailable
-                     ? "检测到 TrollStore：可在应用内下载并自动安装新版本"
-                     : "未检测到 TrollStore：检查更新会打开发布页，需用侧载工具重新安装（登录状态与设置保留）")
+                Text("装有 TrollStore（巨魔）可在应用内一键自动安装；否则可下载 IPA 用侧载工具重装（登录状态与设置保留）")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 #endif

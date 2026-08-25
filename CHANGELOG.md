@@ -6,6 +6,18 @@
 section the English bullets come first, followed by their Simplified Chinese
 counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单行。
 
+## 0.3.2 - 2026-08-25
+
+### Fixed / 修复
+
+- iOS in-app update no longer tries to "detect" TrollStore. The previous detection (via `canOpenURL` / `LSApplicationProxy`) gave false negatives — reporting "TrollStore not detected" on devices that clearly had it and had URL schemes enabled. Following Dopamine, the update sheet now always offers a one-tap **自动安装（TrollStore）** that fires `apple-magnifier://install?url=…` directly (`open` needs no scheme whitelisting), with a manual **下载 IPA** fallback for other sideloaders.
+- iOS 应用内更新不再「检测」TrollStore。之前用 `canOpenURL` / `LSApplicationProxy` 检测会误判——明明装了巨魔、也开了 URL Scheme，却提示「未检测到 TrollStore」。参照 Dopamine，更新弹窗现在始终提供一键 **自动安装（TrollStore）**，直接唤起 `apple-magnifier://install?url=…`（`open` 无需 scheme 白名单），并保留 **下载 IPA** 手动侧载入口。
+
+### Improved / 改进
+
+- iOS 16–25 glass tab bar now matches the iOS 26 native Liquid Glass bar 1:1: a near-full-width frosted capsule, filled primary-colour icons (accent on the selected tab), and a subtle sliding lighter-glass pill — replacing the earlier bright, oversized chip and washed-out grey icons.
+- iOS 16–25 玻璃 Tab Bar 现在与 iOS 26 原生 Liquid Glass 栏 1:1 对齐：接近满宽的磨砂胶囊、填充的主色图标（选中项为强调色）、低调滑动的浅玻璃选中块——取代之前过亮过大的方块与灰扁的图标。
+
 ## 0.3.1 - 2026-08-25
 
 ### Fixed / 修复
