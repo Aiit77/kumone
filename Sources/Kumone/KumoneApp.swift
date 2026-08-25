@@ -112,6 +112,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    @MainActor
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        DockMenu.shared.makeMenu()
+    }
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
     }
