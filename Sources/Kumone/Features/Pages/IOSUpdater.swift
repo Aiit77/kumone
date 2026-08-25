@@ -11,8 +11,7 @@ import UIKit
 /// plain AltStore/SideStore sideload there is no such install primitive, so
 /// the updater falls back to opening the release page for a manual reinstall.
 @MainActor
-@Observable
-final class IOSUpdater: NSObject {
+final class IOSUpdater: NSObject, ObservableObject {
     static let shared = IOSUpdater()
 
     enum Phase {
@@ -26,8 +25,8 @@ final class IOSUpdater: NSObject {
         case failed(String)
     }
 
-    var phase: Phase = .idle
-    var showSheet = false
+    @Published var phase: Phase = .idle
+    @Published var showSheet = false
 
     private var downloadTask: URLSessionDownloadTask?
     private var progressContinuation: CheckedContinuation<URL, Error>?
@@ -160,7 +159,7 @@ extension IOSUpdater: URLSessionDownloadDelegate {
 // MARK: - UI
 
 struct IOSUpdaterSheet: View {
-    @Bindable var updater = IOSUpdater.shared
+    @StateObject private var updater = IOSUpdater.shared
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {

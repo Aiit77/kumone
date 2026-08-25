@@ -1,12 +1,11 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @Environment(SettingsManager.self) private var settings
-    @Environment(AccountStore.self) private var account
+    @EnvironmentObject private var settings: SettingsManager
+    @EnvironmentObject private var account: AccountStore
     @State private var cacheSize: String = String(localized: "计算中…")
 
     var body: some View {
-        @Bindable var settings = settings
         Form {
             Section("播放") {
                 Picker("音质", selection: $settings.audioQuality) {

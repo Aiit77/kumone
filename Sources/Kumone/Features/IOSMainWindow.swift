@@ -2,10 +2,11 @@ import SwiftUI
 
 #if os(iOS)
 public struct IOSMainWindow: View {
-    @State private var player = PlayerService.shared
-    @State private var account = AccountStore.shared
-    @State private var settings = SettingsManager.shared
-    @State private var toasts = ToastCenter.shared
+    @StateObject private var player = PlayerService.shared
+    @StateObject private var account = AccountStore.shared
+    @StateObject private var settings = SettingsManager.shared
+    @StateObject private var toasts = ToastCenter.shared
+    @StateObject private var updater = IOSUpdater.shared
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @State private var selectedTab: IOSTab = .home
@@ -18,6 +19,22 @@ public struct IOSMainWindow: View {
 
     public init() {}
 
+    /// iOS 26+ renders its own Liquid Glass tab bar — use it. Older systems
+    /// get our simulated-glass custom bar instead.
+    private var usesNativeTabBar: Bool {
+        if #available(iOS 26.0, *) { true } else { false }
+    }
+
+    private func popToRoot(_ tab: IOSTab) {
+        switch tab {
+        case .home: homePath = NavigationPath()
+        case .explore: explorePath = NavigationPath()
+        case .fm: fmPath = NavigationPath()
+        case .search: searchPath = NavigationPath()
+        case .library: libraryPath = NavigationPath()
+        }
+    }
+
     public var body: some View {
         Group {
             if UIDevice.current.userInterfaceIdiom == .pad {
@@ -28,10 +45,10 @@ public struct IOSMainWindow: View {
                 tabInterface
             }
         }
-        .environment(player)
-        .environment(account)
-        .environment(settings)
-        .environment(toasts)
+        .environmentObject(player)
+        .environmentObject(account)
+        .environmentObject(settings)
+        .environmentObject(toasts)
         .tint(Theme.accent)
         .preferredColorScheme(settings.appearance.colorScheme)
         .environment(\.openLogin, { showLogin = true })
@@ -40,19 +57,19 @@ public struct IOSMainWindow: View {
             // Quiet auto-check on launch: only surfaces a sheet if newer.
             IOSUpdater.shared.check(interactive: false)
         }
-        .sheet(isPresented: Bindable(IOSUpdater.shared).showSheet) {
+        .sheet(isPresented: $updater.showSheet) {
             IOSUpdaterSheet()
         }
         .sheet(isPresented: $showLogin) {
             LoginSheet()
-                .environment(account)
-                .environment(toasts)
+                .environmentObject(account)
+                .environmentObject(toasts)
         }
-        .fullScreenCover(isPresented: Bindable(player).showNowPlaying) {
+        .fullScreenCover(isPresented: $player.showNowPlaying) {
             NowPlayingView()
-                .environment(player)
-                .environment(account)
-                .environment(settings)
+                .environmentObject(player)
+                .environmentObject(account)
+                .environmentObject(settings)
         }
         .overlay(alignment: .top) {
             if let toast = toasts.current {
@@ -71,6 +88,7 @@ public struct IOSMainWindow: View {
                     HomeView()
                         .appDestinations()
                 }
+                .toolbar(usesNativeTabBar ? .automatic : .hidden, for: .tabBar)
                 .tabItem {
                     Label("推荐", systemImage: "house.fill")
                 }
@@ -80,6 +98,7 @@ public struct IOSMainWindow: View {
                     ExploreView()
                         .appDestinations()
                 }
+                .toolbar(usesNativeTabBar ? .automatic : .hidden, for: .tabBar)
                 .tabItem {
                     Label("精选", systemImage: "square.grid.2x2.fill")
                 }
@@ -89,6 +108,7 @@ public struct IOSMainWindow: View {
                     FMView()
                         .appDestinations()
                 }
+                .toolbar(usesNativeTabBar ? .automatic : .hidden, for: .tabBar)
                 .tabItem {
                     Label("漫游", systemImage: "wave.3.right.circle.fill")
                 }
@@ -98,6 +118,7 @@ public struct IOSMainWindow: View {
                     SearchView(query: "")
                         .appDestinations()
                 }
+                .toolbar(usesNativeTabBar ? .automatic : .hidden, for: .tabBar)
                 .tabItem {
                     Label("搜索", systemImage: "magnifyingglass")
                 }
@@ -107,18 +128,29 @@ public struct IOSMainWindow: View {
                     IOSLibraryView(showLogin: $showLogin)
                         .appDestinations()
                 }
+                .toolbar(usesNativeTabBar ? .automatic : .hidden, for: .tabBar)
                 .tabItem {
                     Label("我的", systemImage: "person.crop.circle.fill")
                 }
                 .tag(IOSTab.library)
             }
 
-            if player.hasCurrentTrack {
-                IOSMiniPlayerBar()
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 54)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            VStack(spacing: 8) {
+                if player.hasCurrentTrack {
+                    IOSMiniPlayerBar()
+                        .padding(.horizontal, 12)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                if !usesNativeTabBar {
+                    GlassTabBar(items: Self.tabItems, selection: $selectedTab) { tab in
+                        popToRoot(tab)
+                    }
+                }
             }
+            // On iOS 26 the native (Liquid Glass) tab bar owns the bottom, so
+            // the mini player floats just above it; on older systems our
+            // custom glass bar sits at the very bottom.
+            .padding(.bottom, usesNativeTabBar ? 58 : 6)
         }
         .animation(AppAnimation.standard, value: player.hasCurrentTrack)
     }
@@ -128,11 +160,22 @@ enum IOSTab: Hashable {
     case home, explore, fm, search, library
 }
 
+extension IOSMainWindow {
+    static let tabItems: [GlassTabBar.Item] = [
+        .init(tab: .home, title: "推荐", icon: "house"),
+        .init(tab: .explore, title: "精选", icon: "square.grid.2x2"),
+        .init(tab: .fm, title: "漫游", icon: "dot.radiowaves.left.and.right"),
+        .init(tab: .search, title: "搜索", icon: "magnifyingglass"),
+        .init(tab: .library, title: "我的", icon: "person.crop.circle"),
+    ]
+}
+
 // MARK: - Mini player bar for iOS
 
 struct IOSMiniPlayerBar: View {
-    @Environment(PlayerService.self) private var player
-    @Environment(AccountStore.self) private var account
+    @EnvironmentObject private var player: PlayerService
+    @StateObject private var updater = IOSUpdater.shared
+    @EnvironmentObject private var account: AccountStore
 
     var body: some View {
         Button {
@@ -196,7 +239,7 @@ struct IOSMiniPlayerBar: View {
 
 struct IOSLibraryView: View {
     @Binding var showLogin: Bool
-    @Environment(AccountStore.self) private var account
+    @EnvironmentObject private var account: AccountStore
     @State private var showSettings = false
     @State private var showNewPlaylist = false
     @State private var newPlaylistName = ""

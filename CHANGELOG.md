@@ -13,6 +13,20 @@ counterparts. 段落格式：`## <版本号> - <日期>`，条目必须写成单
 - AirPlay: the now-playing page (and the macOS player bar) gain a system route picker for sending audio to AirPlay / Bluetooth devices; playback is audio-only, so it routes sound instead of mirroring the screen (#20)
 - AirPlay：播放页（及 macOS 播放条）新增系统输出设备选择器，可将音频投送到 AirPlay / 蓝牙设备；由于是纯音频播放，只路由声音而非镜像屏幕（#20）
 
+## 0.3.0 - 2026-08-25
+
+### Added / 新增
+
+- iOS 16 support: the minimum iOS version is lowered from 17 to 16 (iPhone 8 / X and later). The Observation-based state layer was rewritten to classic `ObservableObject`, with the high-frequency playback position split into its own `PlaybackClock` so only the scrubbers and lyrics re-render per tick — everything else is unaffected. macOS behavior is unchanged.
+- Liquid Glass tab bar on iOS: iOS 26+ uses the native glass tab bar; iOS 16–25 gets a Telegram-style simulated glass bar (blurred material capsule with an edge highlight, hairline rim, and soft shadow).
+- iOS 16 支持：最低 iOS 版本从 17 降到 16（iPhone 8 / X 及之后机型）。基于 Observation 的状态层重写为经典 `ObservableObject`，并把高频播放进度拆到独立的 `PlaybackClock`，每秒跳动只重绘进度条与歌词，其余视图不受影响；macOS 行为不变。
+- iOS 玻璃 Tab Bar：iOS 26+ 使用系统原生玻璃 Tab Bar；iOS 16–25 使用 Telegram 风格的仿制玻璃（材质模糊胶囊 + 边缘高光 + 细描边 + 柔和投影）。
+
+### Improved / 改进
+
+- Redesigned the phone-code login form (rounded card-style input rows) and added a notice that SMS login may be blocked by NetEase's risk control — QR sign-in is recommended.
+- 重新设计手机验证码登录表单（圆角卡片式输入行），并提示短信登录可能被网易云风控拦截、推荐使用扫码登录。
+
 ## 0.2.7 - 2026-08-25
 
 ### Added / 新增
