@@ -228,17 +228,21 @@ final class PlayerService: ObservableObject {
                 self?.handleAudioInterruption(note)
             }
         }
-        // Pause when the output route disappears (headphones unplugged).
+        // Keep lock screen / Control Center state in sync when AirPlay, Bluetooth,
+        // wired headphones, or the built-in output route changes. AirDrop itself is
+        // system-owned and cannot be controlled by an app; this handles audio routes.
         NotificationCenter.default.addObserver(
             forName: AVAudioSession.routeChangeNotification,
             object: AVAudioSession.sharedInstance(), queue: .main
         ) { [weak self] note in
             MainActor.assumeIsolated {
-                guard let self,
-                      let reasonValue = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
-                      let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue),
-                      reason == .oldDeviceUnavailable, self.isPlaying else { return }
-                self.pause()
+                guard let self else { return }
+                if let reasonValue = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
+                   let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue),
+                   reason == .oldDeviceUnavailable, self.isPlaying {
+                    self.pause()
+                }
+                self.refreshSystemPlaybackState()
             }
         }
         #endif
@@ -703,7 +707,19 @@ final class PlayerService: ObservableObject {
         lyrics = response.map(LyricsParser.parse)
     }
 
-    // MARK: - Scrobble
+    #if os(iOS)
+    /// Re-publish the authoritative elapsed time and rate after an output-route
+    /// change so iOS 15 Control Center and external audio devices stay in sync.
+    private func refreshSystemPlaybackState() {
+        guard hasCurrentTrack else { return }
+        NowPlayingManager.shared.updateElapsed(
+            progress,
+            rate: isPlaying ? Double(playbackRate.rawValue) : 0
+        )
+    }
+    #endif
+
+    // MARK: - Playback
 
     private func scrobbleIfNeeded(completed: Bool) {
         guard let track = currentTrack, !scrobbled, progress > 1 else { return }

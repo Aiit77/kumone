@@ -62,20 +62,26 @@ struct NowPlayingView: View {
                     // 顶部歌词按钮保持原位；关闭按钮单独下移到其下方，避开收藏/更多区。
                     // 外层 68pt 方形命中区大于可见圆形，避免 iOS 15 下触控被边缘裁切或难以命中。
                     VStack(alignment: .trailing, spacing: 12) {
-                        Button {
-                            withAnimation(AppAnimation.standard) {
-                                showLyricsOnMobile.toggle()
+                        // 收藏与歌词浮窗使用相同的 44pt 圆形基线，避免在沉浸模式中上下错位。
+                        HStack(alignment: .center, spacing: 8) {
+                            immersiveFavoriteButton
+
+                            Button {
+                                withAnimation(AppAnimation.standard) {
+                                    showLyricsOnMobile.toggle()
+                                }
+                            } label: {
+                                Image(systemName: showLyricsOnMobile ? "music.note" : "quote.bubble")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(showLyricsOnMobile ? Theme.accent : .white.opacity(0.85))
+                                    .frame(width: 44, height: 44)
+                                    .background(.white.opacity(0.12), in: Circle())
                             }
-                        } label: {
-                            Image(systemName: showLyricsOnMobile ? "music.note" : "quote.bubble")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(showLyricsOnMobile ? Theme.accent : .white.opacity(0.85))
-                                .frame(width: 44, height: 44)
-                                .background(.white.opacity(0.12), in: Circle())
+                            .buttonStyle(.plain)
+                            .contentShape(Circle())
+                            .accessibilityLabel(showLyricsOnMobile ? "显示海报" : "显示歌词")
+                            .accessibilityIdentifier("immersiveLyricsFloatingButton")
                         }
-                        .buttonStyle(.plain)
-                        .contentShape(Circle())
-                        .accessibilityLabel(showLyricsOnMobile ? "显示海报" : "显示歌词")
 
                         Button(action: close) {
                             Image(systemName: "xmark")
@@ -163,6 +169,26 @@ struct NowPlayingView: View {
         #else
         return true
         #endif
+    }
+
+    @ViewBuilder
+    private var immersiveFavoriteButton: some View {
+        if let track = player.currentTrack {
+            let liked = account.isLiked(track.id)
+            Button {
+                Task { await account.toggleLike(trackID: track.id) }
+            } label: {
+                Image(systemName: liked ? "heart.fill" : "heart")
+                    .font(.system(size: 21, weight: .medium))
+                    .foregroundStyle(liked ? Theme.accent : .white.opacity(0.88))
+                    .frame(width: 44, height: 44)
+                    .background(.white.opacity(0.12), in: Circle())
+            }
+            .buttonStyle(.pressable)
+            .contentShape(Circle())
+            .accessibilityLabel(liked ? "取消收藏" : "收藏")
+            .accessibilityIdentifier("immersiveFavoriteButton")
+        }
     }
 
     // MARK: - Backdrop
@@ -964,54 +990,39 @@ private struct CompactTrackHeader: View {
             .accessibilityIdentifier("immersiveTrackMetadata")
 
             if let track = player.currentTrack {
-                let liked = account.isLiked(track.id)
-                HStack(spacing: 0) {
+                Menu {
                     Button {
-                        Task { await account.toggleLike(trackID: track.id) }
+                        player.addToPlayNext(track)
                     } label: {
-                        Image(systemName: liked ? "heart.fill" : "heart")
-                            .font(.system(size: 21, weight: .medium))
-                            .foregroundStyle(liked ? Theme.accent : .white.opacity(0.88))
-                            .frame(width: 44, height: 44)
+                        Label("下一首播放", systemImage: "text.line.first.and.arrowtriangle.forward")
                     }
-                    .buttonStyle(.pressable)
-                    .accessibilityLabel(liked ? "取消收藏" : "收藏")
-                    .accessibilityIdentifier("immersiveFavoriteButton")
 
-                    Menu {
-                        Button {
-                            player.addToPlayNext(track)
-                        } label: {
-                            Label("下一首播放", systemImage: "text.line.first.and.arrowtriangle.forward")
-                        }
-
-                        Button {
-                            showAddToPlaylist = true
-                        } label: {
-                            Label("加入歌单…", systemImage: "music.note.list")
-                        }
-
-                        Divider()
-
-                        Button {
-                            Platform.copyToPasteboard(
-                                string: "https://music.163.com/#/song?id=\(track.id)"
-                            )
-                            ToastCenter.shared.show(String(localized: "链接已复制"))
-                        } label: {
-                            Label("复制链接", systemImage: "link")
-                        }
+                    Button {
+                        showAddToPlaylist = true
                     } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 21, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.88))
-                            .frame(width: 44, height: 44)
-                            .contentShape(Rectangle())
+                        Label("加入歌单…", systemImage: "music.note.list")
                     }
-                    .buttonStyle(.pressable)
-                    .accessibilityLabel("更多操作")
-                    .accessibilityIdentifier("immersiveMoreMenu")
+
+                    Divider()
+
+                    Button {
+                        Platform.copyToPasteboard(
+                            string: "https://music.163.com/#/song?id=\(track.id)"
+                        )
+                        ToastCenter.shared.show(String(localized: "链接已复制"))
+                    } label: {
+                        Label("复制链接", systemImage: "link")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 21, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.88))
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.pressable)
+                .accessibilityLabel("更多操作")
+                .accessibilityIdentifier("immersiveMoreMenu")
             }
         }
         .accessibilityElement(children: .contain)

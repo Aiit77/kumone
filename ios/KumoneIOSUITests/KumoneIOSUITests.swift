@@ -57,6 +57,36 @@ final class KumoneIOSUITests: XCTestCase {
     }
 
     @MainActor
+    func testImmersiveFavoriteAlignsWithLyricsFloatingButton() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-uiTestingDemoTrack",
+            "-uiTestingIOS15Root",
+            "-uiTestingNowPlaying",
+            "-uiTestingImmersiveNowPlaying"
+        ]
+        app.launch()
+
+        let favorite = app.buttons["immersiveFavoriteButton"]
+        let lyrics = app.buttons["immersiveLyricsFloatingButton"]
+        XCTAssertTrue(
+            favorite.waitForExistence(timeout: 8),
+            "沉浸模式应显示收藏心形按钮"
+        )
+        XCTAssertTrue(
+            lyrics.waitForExistence(timeout: 8),
+            "沉浸模式应显示歌词浮窗按钮"
+        )
+        XCTAssertEqual(
+            favorite.frame.midY,
+            lyrics.frame.midY,
+            accuracy: 1,
+            "收藏心形与歌词浮窗按钮应处于同一水平基线"
+        )
+        XCTAssertEqual(favorite.frame.size, lyrics.frame.size)
+    }
+
+    @MainActor
     func testClassicModeKeepsOriginalCloseControl() throws {
         let app = XCUIApplication()
         app.launchArguments = [

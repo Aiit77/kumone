@@ -16,6 +16,8 @@ struct RoutePickerButton: View {
         RoutePickerRepresentable(tint: PlatformColor(tint), glyphSize: glyphSize)
             .frame(width: diameter, height: diameter)
             .background(background, in: Circle())
+            .accessibilityLabel("AirPlay 音频输出")
+            .accessibilityIdentifier("airPlayRouteButton")
             .help("AirPlay")
     }
 }
