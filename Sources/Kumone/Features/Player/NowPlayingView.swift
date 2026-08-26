@@ -37,23 +37,24 @@ struct NowPlayingView: View {
             // stretch the ZStack and push the corner overlays off-screen.
             .frame(width: geo.size.width)
             .overlay(alignment: .topLeading) {
-                if showsClassicChrome(isCompact: isCompact) {
-                    Button {
-                        close()
-                    } label: {
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.85))
-                            .frame(width: 36, height: 36)
-                            .background(.white.opacity(0.12), in: Circle())
-                    }
-                    .buttonStyle(.pressable)
-                    .padding(.top, 20)
-                    .padding(.leading, 20)
+                // v0.3.5 风格：以显式按钮关闭，不使用下滑手势或拖拽指示器。
+                Button {
+                    close()
+                } label: {
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .frame(width: 36, height: 36)
+                        .background(.white.opacity(0.12), in: Circle())
                 }
+                .buttonStyle(.pressable)
+                .padding(.top, 20)
+                .padding(.leading, 20)
+                .accessibilityLabel("关闭播放页")
+                .accessibilityIdentifier("nowPlayingCloseButton")
             }
             .overlay(alignment: .topTrailing) {
-                if isCompact, showsClassicChrome(isCompact: isCompact) {
+                if isCompact {
                     Button {
                         withAnimation(AppAnimation.standard) {
                             showLyricsOnMobile.toggle()
@@ -68,6 +69,7 @@ struct NowPlayingView: View {
                     .buttonStyle(.pressable)
                     .padding(.top, 20)
                     .padding(.trailing, 20)
+                    .accessibilityLabel(showLyricsOnMobile ? "显示海报" : "显示歌词")
                 }
             }
         }
@@ -84,22 +86,14 @@ struct NowPlayingView: View {
         }
         #if os(iOS)
         .onAppear {
-            switch player.iosNowPlayingStartPanel {
-            case .lyrics:
+            // 旧版 iOS 15 路径始终从海报模式开始；更多菜单可直接请求歌词。
+            if case .lyrics? = player.iosNowPlayingStartPanel {
                 showLyricsOnMobile = true
-                showQueueOnMobile = false
-            case .queue:
+            } else {
                 showLyricsOnMobile = false
-                showQueueOnMobile = true
-            case nil:
-                showLyricsOnMobile = settings.nowPlayingMode == .immersive
-                showQueueOnMobile = false
             }
-            player.iosNowPlayingStartPanel = nil
-        }
-        .onChange(of: settings.nowPlayingMode) { _ in
-            showLyricsOnMobile = settings.nowPlayingMode == .immersive
             showQueueOnMobile = false
+            player.iosNowPlayingStartPanel = nil
         }
         #endif
         #if os(macOS)
@@ -125,14 +119,6 @@ struct NowPlayingView: View {
         }
         #else
         player.showNowPlaying = false
-        #endif
-    }
-
-    private func showsClassicChrome(isCompact: Bool) -> Bool {
-        #if os(iOS)
-        return !isCompact || settings.nowPlayingMode == .classic
-        #else
-        return true
         #endif
     }
 
@@ -194,12 +180,8 @@ struct NowPlayingView: View {
         if size.width > size.height {
             landscapePlayerLayout(size: size)
         } else {
-            switch settings.nowPlayingMode {
-            case .classic:
-                classicCompactLayout(size: size)
-            case .immersive:
-                immersiveCompactLayout(size: size)
-            }
+            // 回退至 v0.3.5 的竖屏海报/歌词界面，不再启用新版沉浸式下滑关闭路径。
+            classicCompactLayout(size: size)
         }
         #else
         classicCompactLayout(size: size)

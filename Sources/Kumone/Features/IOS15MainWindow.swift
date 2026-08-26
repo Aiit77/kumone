@@ -76,6 +76,10 @@ public struct IOS15MainWindow: View {
             .sheet(isPresented: $showSettings, onDismiss: dismissKeyboardAndResetLayout) {
                 NavigationView {
                     SettingsView()
+                        // iOS 15 的独立 sheet 不依赖环境对象的隐式继承。
+                        // 显式注入可避免 SettingsView 首次绘制时触发 SwiftUI 陷阱。
+                        .environmentObject(settings)
+                        .environmentObject(account)
                         .navigationTitle("设置")
                         .toolbar {
                             ToolbarItem(placement: .navigationBarTrailing) {
@@ -137,6 +141,7 @@ public struct IOS15MainWindow: View {
     private func legacyNavigation<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         NavigationView {
             content()
+                .background(IOS15DisableInteractivePopGesture())
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
