@@ -67,9 +67,27 @@ final class KumoneIOSUITests: XCTestCase {
         ]
         app.launch()
 
+        let favorite = app.buttons["immersiveFavoriteButton"]
+        let moreMenu = app.buttons["immersiveMoreMenu"]
         XCTAssertTrue(
-            app.buttons["immersiveFavoriteButton"].waitForExistence(timeout: 8),
+            favorite.waitForExistence(timeout: 8),
             "沉浸模式应继续显示收藏心形按钮"
+        )
+        XCTAssertTrue(
+            moreMenu.waitForExistence(timeout: 8),
+            "沉浸模式应继续显示三点更多菜单"
+        )
+        XCTAssertEqual(
+            favorite.frame.midY,
+            moreMenu.frame.midY,
+            accuracy: 1,
+            "原版心形与三点菜单应位于同一顶栏基线"
+        )
+        XCTAssertEqual(
+            favorite.frame.maxX,
+            moreMenu.frame.minX,
+            accuracy: 1,
+            "原版心形应紧邻三点菜单左侧"
         )
         XCTAssertFalse(
             app.buttons["immersiveLyricsFloatingButton"].exists,

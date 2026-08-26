@@ -80,31 +80,27 @@ struct NowPlayingView: View {
                 } else if isCompact && settings.nowPlayingMode == .immersive {
                     // 右上角独立操作区：避免原版左侧小型按钮被海报层遮挡，
                     // 在 iOS 15 上提供用户标记位置可稳定点击的显式关闭入口。
-                    // 沉浸模式不再放置歌词浮窗按钮；歌词切换保留在底部次级控制区，
-                    // 右上角仅保留收藏和可稳定触达的关闭入口。
+                    // 沉浸模式不再放置歌词浮窗按钮；收藏按钮回到原版歌曲顶栏、
+                    // 位于三点菜单左侧。这里仅保留已修复的独立关闭入口。
                     // 外层 68pt 方形命中区大于可见圆形，避免 iOS 15 下触控被边缘裁切或难以命中。
-                    VStack(alignment: .trailing, spacing: 12) {
-                        immersiveFavoriteButton
-
-                        Button(action: close) {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundStyle(.white)
-                                .frame(width: 50, height: 50)
-                                .background(.black.opacity(0.34), in: Circle())
-                                .overlay {
-                                    Circle()
-                                        .strokeBorder(.white.opacity(0.28), lineWidth: 0.8)
-                                }
-                                .shadow(color: .black.opacity(0.22), radius: 7, y: 3)
-                                .frame(width: 68, height: 68)
-                        }
-                        .buttonStyle(.plain)
-                        .contentShape(Rectangle())
-                        .allowsHitTesting(true)
-                        .accessibilityLabel("关闭播放页")
-                        .accessibilityIdentifier("nowPlayingPosterCloseButton")
+                    Button(action: close) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 50, height: 50)
+                            .background(.black.opacity(0.34), in: Circle())
+                            .overlay {
+                                Circle()
+                                    .strokeBorder(.white.opacity(0.28), lineWidth: 0.8)
+                            }
+                            .shadow(color: .black.opacity(0.22), radius: 7, y: 3)
+                            .frame(width: 68, height: 68)
                     }
+                    .buttonStyle(.plain)
+                    .contentShape(Rectangle())
+                    .allowsHitTesting(true)
+                    .accessibilityLabel("关闭播放页")
+                    .accessibilityIdentifier("nowPlayingPosterCloseButton")
                     .padding(.top, max(22, geo.safeAreaInsets.top + 14))
                     .padding(.trailing, 12)
                     .zIndex(100)
@@ -184,25 +180,6 @@ struct NowPlayingView: View {
         #endif
     }
 
-    @ViewBuilder
-    private var immersiveFavoriteButton: some View {
-        if let track = player.currentTrack {
-            let liked = account.isLiked(track.id)
-            Button {
-                Task { await account.toggleLike(trackID: track.id) }
-            } label: {
-                Image(systemName: liked ? "heart.fill" : "heart")
-                    .font(.system(size: 21, weight: .medium))
-                    .foregroundStyle(liked ? Theme.accent : .white.opacity(0.88))
-                    .frame(width: 44, height: 44)
-                    .background(.white.opacity(0.12), in: Circle())
-            }
-            .buttonStyle(.pressable)
-            .contentShape(Circle())
-            .accessibilityLabel(liked ? "取消收藏" : "收藏")
-            .accessibilityIdentifier("immersiveFavoriteButton")
-        }
-    }
 
     // MARK: - Backdrop
 
@@ -1004,18 +981,36 @@ private struct CompactTrackHeader: View {
             .accessibilityIdentifier("immersiveTrackMetadata")
 
             if let track = player.currentTrack {
-                Button {
-                    showMoreActions = true
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 21, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.88))
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
+                // 还原原版沉浸顶栏：心形直接位于三点菜单左侧，
+                // 使用同一 44pt 顶栏触控规格和原有收藏动作。
+                HStack(spacing: 0) {
+                    let liked = account.isLiked(track.id)
+                    Button {
+                        Task { await account.toggleLike(trackID: track.id) }
+                    } label: {
+                        Image(systemName: liked ? "heart.fill" : "heart")
+                            .font(.system(size: 21, weight: .medium))
+                            .foregroundStyle(liked ? Theme.accent : .white.opacity(0.88))
+                            .frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(.pressable)
+                    .contentShape(Rectangle())
+                    .accessibilityLabel(liked ? "取消收藏" : "收藏")
+                    .accessibilityIdentifier("immersiveFavoriteButton")
+
+                    Button {
+                        showMoreActions = true
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 21, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.88))
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.pressable)
+                    .accessibilityLabel("更多操作")
+                    .accessibilityIdentifier("immersiveMoreMenu")
                 }
-                .buttonStyle(.pressable)
-                .accessibilityLabel("更多操作")
-                .accessibilityIdentifier("immersiveMoreMenu")
                 .confirmationDialog(
                     "更多操作",
                     isPresented: $showMoreActions,
