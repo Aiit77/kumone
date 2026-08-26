@@ -65,7 +65,6 @@ final class PlaylistDetailViewModel: ObservableObject {
     }
 }
 
-@available(iOS 16.0, *)
 struct PlaylistDetailView: View {
     let playlistID: Int
     var isLikedList = false
@@ -196,7 +195,7 @@ struct PlaylistDetailView: View {
                 }
                 .buttonStyle(.plain)
                 .sheet(isPresented: $showFullDescription) {
-                    NavigationStack {
+                    NavigationView {
                         ScrollView {
                             Text(description)
                                 .font(.system(size: 14))
@@ -207,7 +206,7 @@ struct PlaylistDetailView: View {
                         .navigationBarTitleDisplayMode(.inline)
                         #endif
                         .toolbar {
-                            ToolbarItem(placement: .primaryAction) {
+                            ToolbarItem(placement: .navigationBarTrailing) {
                                 Button("完成") { showFullDescription = false }
                             }
                         }

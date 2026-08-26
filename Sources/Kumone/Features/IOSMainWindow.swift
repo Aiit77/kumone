@@ -277,6 +277,7 @@ enum IOSTab: Hashable {
     case home, explore, fm, search, library
 }
 
+@available(iOS 16.0, *)
 extension IOSMainWindow {
     static let tabItems: [GlassTabBar.Item] = [
         .init(tab: .home, title: "推荐", icon: "house"),

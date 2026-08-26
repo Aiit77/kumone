@@ -1,6 +1,5 @@
 import SwiftUI
 
-@available(iOS 16.0, *)
 struct AlbumDetailView: View {
     let albumID: Int
 
@@ -157,7 +156,7 @@ struct AlbumDetailView: View {
                 }
                 .buttonStyle(.plain)
                 .sheet(isPresented: $showFullDescription) {
-                    NavigationStack {
+                    NavigationView {
                         ScrollView {
                             Text(description)
                                 .font(.system(size: 14))
@@ -168,7 +167,7 @@ struct AlbumDetailView: View {
                         .navigationBarTitleDisplayMode(.inline)
                         #endif
                         .toolbar {
-                            ToolbarItem(placement: .primaryAction) {
+                            ToolbarItem(placement: .navigationBarTrailing) {
                                 Button("完成") { showFullDescription = false }
                             }
                         }
