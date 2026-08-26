@@ -1,5 +1,6 @@
 import SwiftUI
 
+@available(iOS 16.0, *)
 struct ArtistDetailView: View {
     let artistID: Int
 

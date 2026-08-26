@@ -21,7 +21,9 @@ struct SettingsView: View {
                 Button {
                     player.cyclePlaybackRate()
                 } label: {
-                    LabeledContent("倍速播放") {
+                    HStack {
+                        Text("倍速播放")
+                        Spacer()
                         Text(player.playbackRate.displayName)
                             .foregroundStyle(Theme.accent)
                     }
@@ -61,7 +63,12 @@ struct SettingsView: View {
             }
 
             Section("存储") {
-                LabeledContent("图片缓存", value: cacheSize)
+                HStack {
+                    Text("图片缓存")
+                    Spacer()
+                    Text(cacheSize)
+                        .foregroundStyle(.secondary)
+                }
                 Button("清除缓存") {
                     clearCache()
                 }
@@ -69,7 +76,12 @@ struct SettingsView: View {
 
             Section("账号") {
                 if let profile = account.profile {
-                    LabeledContent("当前账号", value: profile.nickname)
+                    HStack {
+                        Text("当前账号")
+                        Spacer()
+                        Text(profile.nickname)
+                            .foregroundStyle(.secondary)
+                    }
                     Button("退出登录", role: .destructive) {
                         Task { await AccountStore.shared.logout() }
                     }
@@ -102,7 +114,12 @@ struct SettingsView: View {
             #endif
 
             Section("关于") {
-                LabeledContent("Kumone", value: appVersion)
+                HStack {
+                    Text("Kumone")
+                    Spacer()
+                    Text(appVersion)
+                        .foregroundStyle(.secondary)
+                }
                 #if os(iOS)
                 Button {
                     IOSUpdater.shared.check(interactive: true)
@@ -118,8 +135,8 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .formStyle(.grouped)
         #if os(macOS)
+        .formStyle(.grouped)
         .frame(width: 440, height: 480)
         #endif
         .task { updateCacheSize() }

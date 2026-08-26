@@ -65,6 +65,7 @@ final class PlaylistDetailViewModel: ObservableObject {
     }
 }
 
+@available(iOS 16.0, *)
 struct PlaylistDetailView: View {
     let playlistID: Int
     var isLikedList = false

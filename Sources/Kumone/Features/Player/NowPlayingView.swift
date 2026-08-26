@@ -607,7 +607,6 @@ struct NowPlayingView: View {
                 Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 21, weight: .bold))
                     .foregroundStyle(.black.opacity(0.85))
-                    .contentTransition(.opacity)
             }
         }
         .buttonStyle(.pressable)
@@ -670,7 +669,7 @@ struct NowPlayingView: View {
                         isUserScrolling = true
                         resumeTask?.cancel()
                         resumeTask = Task {
-                            try? await Task.sleep(for: .seconds(3))
+                            try? await Task.sleep(nanoseconds: 3_000_000_000)
                             guard !Task.isCancelled else { return }
                             isUserScrolling = false
                         }
@@ -774,7 +773,7 @@ private struct IOSImmersiveLyricsColumn: View {
                             .onEnded { _ in
                                 resumeTask?.cancel()
                                 resumeTask = Task {
-                                    try? await Task.sleep(for: .seconds(3))
+                                    try? await Task.sleep(nanoseconds: 3_000_000_000)
                                     guard !Task.isCancelled else { return }
                                     isUserScrolling = false
                                 }
@@ -999,7 +998,6 @@ private struct CompactTransportControls: View {
             Button(action: player.togglePlayPause) {
                 Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 36, weight: .bold))
-                    .contentTransition(.opacity)
                     .frame(maxWidth: .infinity, minHeight: 64)
             }
             .accessibilityLabel(player.isPlaying ? "暂停" : "播放")

@@ -135,7 +135,6 @@ struct FMView: View {
                     Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundStyle(.white)
-                        .contentTransition(.opacity)
                 }
             }
             .buttonStyle(.pressable)

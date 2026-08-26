@@ -5,7 +5,11 @@ import KumoneIOSFeature
 struct KumoneIOSApp: App {
     var body: some Scene {
         WindowGroup {
-            IOSMainWindow()
+            if #available(iOS 16.0, *) {
+                IOSMainWindow()
+            } else {
+                IOS15MainWindow()
+            }
         }
     }
 }

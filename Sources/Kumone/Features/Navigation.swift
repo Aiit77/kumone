@@ -71,6 +71,7 @@ enum Destination: Hashable {
 }
 
 /// Registers all shared navigation destinations on a stack.
+@available(iOS 16.0, *)
 struct DestinationsModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.navigationDestination(for: Destination.self) { destination in
@@ -113,6 +114,7 @@ extension View {
         self
     }
 
+    @available(iOS 16.0, *)
     func appDestinations() -> some View {
         modifier(DestinationsModifier())
     }

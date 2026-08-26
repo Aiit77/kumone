@@ -38,24 +38,39 @@ enum LyricsParser {
     /// per line and both `.` / `:` millisecond separators.
     static func parseLRC(_ lrc: String) -> [(time: TimeInterval, text: String)] {
         var result: [(TimeInterval, String)] = []
-        let timeTag = #/\[(\d+):(\d+)(?:[.:](\d+))?\]/#
+        let expression = try? NSRegularExpression(
+            pattern: #"\[(\d+):(\d+)(?:[.:](\d+))?\]"#,
+            options: []
+        )
+        guard let expression else { return result }
 
         for rawLine in lrc.components(separatedBy: .newlines) {
             let line = rawLine.trimmingCharacters(in: .whitespaces)
             guard !line.isEmpty else { continue }
-            let matches = line.matches(of: timeTag)
-            guard !matches.isEmpty else { continue }
-            guard let lastMatch = matches.last else { continue }
-            let content = String(line[lastMatch.range.upperBound...])
+            let lineRange = NSRange(line.startIndex..., in: line)
+            let matches = expression.matches(in: line, options: [], range: lineRange)
+            guard let lastMatch = matches.last,
+                  let contentRange = Range(lastMatch.range, in: line)
+            else { continue }
+
+            let content = String(line[contentRange.upperBound...])
                 .trimmingCharacters(in: .whitespaces)
             for match in matches {
-                let min = Double(match.output.1) ?? 0
-                let sec = Double(match.output.2) ?? 0
-                var frac = 0.0
-                if let msStr = match.output.3, let ms = Double(msStr) {
-                    frac = ms / pow(10, Double(msStr.count))
+                func capture(_ index: Int) -> String? {
+                    let range = match.range(at: index)
+                    guard range.location != NSNotFound,
+                          let swiftRange = Range(range, in: line)
+                    else { return nil }
+                    return String(line[swiftRange])
                 }
-                result.append((min * 60 + sec + frac, content))
+
+                let minutes = Double(capture(1) ?? "") ?? 0
+                let seconds = Double(capture(2) ?? "") ?? 0
+                var fraction = 0.0
+                if let milliseconds = capture(3), let value = Double(milliseconds) {
+                    fraction = value / pow(10, Double(milliseconds.count))
+                }
+                result.append((minutes * 60 + seconds + fraction, content))
             }
         }
         return result.sorted { $0.0 < $1.0 }

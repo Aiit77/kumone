@@ -73,6 +73,7 @@ final class ExploreViewModel: ObservableObject {
     }
 }
 
+@available(iOS 16.0, *)
 struct ExploreView: View {
     @StateObject private var model = ExploreViewModel.shared
     @EnvironmentObject private var player: PlayerService
@@ -165,6 +166,7 @@ struct ExploreView: View {
 
 // MARK: - Toplist grid
 
+@available(iOS 16.0, *)
 struct ToplistGrid: View {
     let toplists: [ToplistItem]
 
@@ -209,6 +211,7 @@ struct ToplistGrid: View {
     }
 }
 
+@available(iOS 16.0, *)
 struct ToplistsView: View {
     @State private var toplists: [ToplistItem] = []
 

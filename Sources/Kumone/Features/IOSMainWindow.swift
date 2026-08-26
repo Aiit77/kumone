@@ -1,6 +1,7 @@
 import SwiftUI
 
 #if os(iOS)
+@available(iOS 16.0, *)
 public struct IOSMainWindow: View {
     @StateObject private var player = PlayerService.shared
     @StateObject private var account = AccountStore.shared
@@ -507,6 +508,7 @@ struct IOSMiniPlayerBar: View {
 
 // MARK: - iOS Library View
 
+@available(iOS 16.0, *)
 struct IOSLibraryView: View {
     @Binding var showLogin: Bool
     @EnvironmentObject private var account: AccountStore
