@@ -377,7 +377,12 @@ struct HomeView: View {
         case .album(let id): AlbumDetailView(albumID: id)
         case .artist(let id): ArtistDetailView(artistID: id)
         case .daily: DailySongsView()
-        case .toplists: ToplistsView()
+        case .toplists:
+            if #available(iOS 16.0, *) {
+                ToplistsView()
+            } else {
+                IOS15HomeNavigationUnavailableView(title: "排行榜")
+            }
         case .recents: RecentsView()
         case .collections: CollectionsView()
         case .cloud: CloudView()
@@ -396,6 +401,25 @@ struct HomeView: View {
             player.play(tracks: tracks, source: .playlist(id),
                         context: .playlist(id: id, name: detail.playlist.name))
         }
+    }
+}
+
+private struct IOS15HomeNavigationUnavailableView: View {
+    let title: LocalizedStringKey
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "clock.arrow.circlepath")
+                .font(.system(size: 34, weight: .light))
+                .foregroundStyle(Theme.accent)
+            Text(title)
+                .font(.headline)
+            Text("此页面将在较新系统中提供。")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .navigationTitle(title)
     }
 }
 
