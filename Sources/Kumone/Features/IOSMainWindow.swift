@@ -390,6 +390,18 @@ struct IOSMiniPlayerBar: View {
             .accessibilityHint("打开正在播放")
 
             if !presentation.isInline {
+                Button(action: player.cyclePlaybackRate) {
+                    Text(player.playbackRate.displayName)
+                        .font(.system(size: 16, weight: .heavy, design: .rounded))
+                        .foregroundStyle(Theme.accent)
+                        .frame(minWidth: 52, minHeight: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.pressable)
+                .accessibilityLabel("倍速播放")
+                .accessibilityValue(player.playbackRate.displayName)
+                .accessibilityIdentifier("miniPlayerPlaybackRateButton")
+
                 Button(action: player.previous) {
                     Image(systemName: "backward.fill")
                         .font(.system(size: 14, weight: .semibold))

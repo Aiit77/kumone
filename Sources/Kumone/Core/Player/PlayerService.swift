@@ -273,6 +273,30 @@ final class PlayerService: ObservableObject {
     var isScrubbing = false
 
     #if os(iOS)
+    /// UI tests use a deterministic local model so playback-control assertions do
+    /// not depend on account state, artwork download, or the streaming backend.
+    func loadUITestDemoTrackIfNeeded() {
+        guard ProcessInfo.processInfo.arguments.contains("-uiTestingDemoTrack"),
+              currentTrack == nil else { return }
+        let json = """
+        {"id":15,"name":"UI Test Track","ar":[{"id":1,"name":"Kumone"}],"al":{"id":1,"name":"UI Test Album","picUrl":null},"dt":180000}
+        """
+        guard let track = try? JSONDecoder().decode(Track.self, from: Data(json.utf8)) else { return }
+        queue = [track]
+        shuffledQueue = []
+        playNextList = []
+        currentIndex = 0
+        source = .none
+        currentTrack = track
+        duration = track.duration
+        progress = 0
+        isPlaying = false
+        isBuffering = false
+        playbackRate = .one
+    }
+    #endif
+
+    #if os(iOS)
     private var wasPlayingBeforeInterruption = false
 
     private func handleAudioInterruption(_ note: Notification) {

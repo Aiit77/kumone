@@ -2,25 +2,24 @@ import XCTest
 
 final class KumoneIOSUITests: XCTestCase {
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
-    }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testMiniPlayerPlaybackRateCyclesFromOneToOneQuarter() throws {
         let app = XCUIApplication()
+        // 通过启动参数注入本地演示曲目，避免测试依赖账户、网络或流媒体解析。
+        app.launchArguments = ["-uiTestingDemoTrack"]
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        XCTAssertTrue(true)
+        let rateButton = app.buttons["miniPlayerPlaybackRateButton"]
+        XCTAssertTrue(
+            rateButton.waitForExistence(timeout: 8),
+            "迷你播放器的倍速按钮应具有稳定的自动化标识"
+        )
+        XCTAssertEqual(rateButton.value as? String, "1×")
+
+        rateButton.tap()
+        XCTAssertEqual(rateButton.value as? String, "1.25×")
     }
 }

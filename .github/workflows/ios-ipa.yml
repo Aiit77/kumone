@@ -29,6 +29,21 @@ jobs:
           xcodebuild -version
           xcodebuild -workspace ios/KumoneIOS.xcworkspace -list
 
+      - name: Test mini-player playback rate
+        run: |
+          DEVICE_ID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ { print $2; exit }')"
+          test -n "$DEVICE_ID"
+          xcodebuild \
+            -workspace ios/KumoneIOS.xcworkspace \
+            -scheme KumoneIOS \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$DEVICE_ID" \
+            -derivedDataPath "$RUNNER_TEMP/kumone-ios-test-dd" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' \
+            test
+
       - name: Build for generic iOS device
         run: |
           xcodebuild \
@@ -40,7 +55,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY='' \
-            MARKETING_VERSION="0.3.6-ios15" \
+            MARKETING_VERSION="0.3.7-ios15" \
             CURRENT_PROJECT_VERSION="${GITHUB_RUN_NUMBER}" \
             build
 
