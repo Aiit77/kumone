@@ -13,7 +13,20 @@ struct RecentsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                HStack {
+                HStack(spacing: 16) {
+                    #if os(iOS)
+                    IOS15CapsuleSegmentedControl(
+                        segments: [
+                            .init(id: 0, title: "所有时间", icon: nil),
+                            .init(id: 1, title: "最近一周", icon: nil),
+                        ],
+                        selection: Binding(
+                            get: { week ? 1 : 0 },
+                            set: { week = $0 == 1 }
+                        )
+                    )
+                    .frame(maxWidth: 240)
+                    #else
                     Picker("", selection: $week) {
                         Text("所有时间").tag(false)
                         Text("最近一周").tag(true)
@@ -21,8 +34,9 @@ struct RecentsView: View {
                     .pickerStyle(.segmented)
                     .labelsHidden()
                     .frame(width: 200)
+                    #endif
 
-                    Spacer()
+                    Spacer(minLength: 0)
 
                     Button {
                         player.play(tracks: records.map(\.song), source: .none, context: .recents)

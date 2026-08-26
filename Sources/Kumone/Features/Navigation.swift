@@ -123,9 +123,16 @@ extension View {
 /// Trailing spacer for scrollable pages so the last row clears the
 /// floating player bar.
 struct PlayerClearanceSpacer: View {
+    @ViewBuilder
     var body: some View {
         #if os(iOS)
-        Color.clear.frame(height: 80) // mini player bar above the tab bar
+        if #available(iOS 16.0, *) {
+            Color.clear.frame(height: 80) // mini player bar above the tab bar
+        } else {
+            // iOS 15 uses an additional floating 64pt capsule tab bar beneath
+            // the mini player. Keep the final list row readable above both.
+            Color.clear.frame(height: 148)
+        }
         #else
         Color.clear.frame(height: Theme.Layout.playerChromeClearance + 8)
         #endif
