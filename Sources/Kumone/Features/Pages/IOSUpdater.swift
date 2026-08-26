@@ -38,8 +38,18 @@ final class IOSUpdater: NSObject, ObservableObject {
             do {
                 let latest = try await ReleaseChecker.latest()
                 if ReleaseChecker.isNewer(latest.version, than: ReleaseChecker.currentVersion) {
-                    phase = .available(latest)
-                    showSheet = true
+                    let settings = SettingsManager.shared
+                    let shouldShow = interactive || (
+                        !settings.suppressUpdatePrompts
+                            && settings.ignoredUpdateVersion != latest.version
+                    )
+                    if shouldShow {
+                        phase = .available(latest)
+                        showSheet = true
+                    } else {
+                        phase = .idle
+                        showSheet = false
+                    }
                 } else {
                     phase = .upToDate
                     if !interactive { showSheet = false }
@@ -196,6 +206,13 @@ struct IOSUpdaterSheet: View {
                     .buttonStyle(.plain)
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(Theme.accent)
+                Button("忽略此版本") {
+                    SettingsManager.shared.ignoredUpdateVersion = release.version
+                    dismiss()
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 13))
+                .foregroundStyle(.secondary)
                 laterButton
 
             case .downloading(let progress):
@@ -230,7 +247,7 @@ struct IOSUpdaterSheet: View {
         }
         .padding(32)
         .frame(maxWidth: .infinity)
-        .presentationDetents([.height(360)])
+        .ios15UpdateSheetSizing()
     }
 
     private func primaryButton(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
@@ -250,6 +267,17 @@ struct IOSUpdaterSheet: View {
 
     private var doneButton: some View {
         Button("完成") { dismiss() }.buttonStyle(.pressable)
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func ios15UpdateSheetSizing() -> some View {
+        if #available(iOS 16.0, *) {
+            self.presentationDetents([.height(360)])
+        } else {
+            self
+        }
     }
 }
 

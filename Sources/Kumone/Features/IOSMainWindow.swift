@@ -7,6 +7,7 @@ public struct IOSMainWindow: View {
     @StateObject private var settings = SettingsManager.shared
     @StateObject private var toasts = ToastCenter.shared
     @StateObject private var updater = IOSUpdater.shared
+    @Environment(\.scenePhase) private var scenePhase
     @Namespace private var nowPlayingTransition
 
     @State private var selectedTab: IOSTab = .home
@@ -32,10 +33,19 @@ public struct IOSMainWindow: View {
                 await account.bootstrap()
                 IOSUpdater.shared.check(interactive: false)
             }
-            .sheet(isPresented: $updater.showSheet) {
+            .onChange(of: scenePhase) { phase in
+                guard phase == .active else { return }
+                // 从其他应用回到 Kumone 时，系统可能保留前一个界面的
+                // 第一响应者与键盘。异步释放可避免 SwiftUI 呈现链错位。
+                DispatchQueue.main.async { KeyboardDismissal.dismiss() }
+            }
+            .onChange(of: player.showNowPlaying) { isPresented in
+                if isPresented { KeyboardDismissal.dismiss() }
+            }
+            .sheet(isPresented: $updater.showSheet, onDismiss: KeyboardDismissal.dismiss) {
                 IOSUpdaterSheet()
             }
-            .sheet(isPresented: $showLogin) {
+            .sheet(isPresented: $showLogin, onDismiss: KeyboardDismissal.dismiss) {
                 LoginSheet()
                     .environmentObject(account)
                     .environmentObject(toasts)
@@ -278,6 +288,17 @@ extension IOSMainWindow {
 
 private enum NowPlayingTransitionID {
     static let surface = "now-playing-surface"
+}
+
+private enum KeyboardDismissal {
+    static func dismiss() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
+    }
 }
 
 // MARK: - Mini player bar for iOS
@@ -629,7 +650,7 @@ struct IOSLibraryView: View {
                 }
             }
         }
-        .sheet(isPresented: $showSettings) {
+        .sheet(isPresented: $showSettings, onDismiss: KeyboardDismissal.dismiss) {
             NavigationStack {
                 SettingsView()
                     .navigationTitle("设置")

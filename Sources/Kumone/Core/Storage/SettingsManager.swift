@@ -77,6 +77,8 @@ final class SettingsManager: ObservableObject {
         static let appearance = "settings.appearance"
         #if os(iOS)
         static let nowPlayingMode = "settings.nowPlayingMode"
+        static let suppressUpdatePrompts = "settings.suppressUpdatePrompts"
+        static let ignoredUpdateVersion = "settings.ignoredUpdateVersion"
         #endif
         static let showTranslation = "settings.showLyricsTranslation"
         static let showRomaji = "settings.showLyricsRomaji"
@@ -97,6 +99,22 @@ final class SettingsManager: ObservableObject {
     #if os(iOS)
     @Published var nowPlayingMode: NowPlayingMode {
         didSet { UserDefaults.standard.set(nowPlayingMode.rawValue, forKey: Keys.nowPlayingMode) }
+    }
+
+    /// 仅屏蔽启动时的更新弹窗；用户仍可在设置中手动检查更新。
+    @Published var suppressUpdatePrompts: Bool {
+        didSet { UserDefaults.standard.set(suppressUpdatePrompts, forKey: Keys.suppressUpdatePrompts) }
+    }
+
+    /// 用户在更新详情中选择忽略的版本号。新版本发布后会恢复自动提示。
+    @Published var ignoredUpdateVersion: String? {
+        didSet {
+            if let ignoredUpdateVersion {
+                UserDefaults.standard.set(ignoredUpdateVersion, forKey: Keys.ignoredUpdateVersion)
+            } else {
+                UserDefaults.standard.removeObject(forKey: Keys.ignoredUpdateVersion)
+            }
+        }
     }
     #endif
 
@@ -125,6 +143,8 @@ final class SettingsManager: ObservableObject {
         appearance = defaults.string(forKey: Keys.appearance).flatMap(AppAppearance.init) ?? .auto
         #if os(iOS)
         nowPlayingMode = defaults.string(forKey: Keys.nowPlayingMode).flatMap(NowPlayingMode.init) ?? .immersive
+        suppressUpdatePrompts = defaults.object(forKey: Keys.suppressUpdatePrompts) as? Bool ?? false
+        ignoredUpdateVersion = defaults.string(forKey: Keys.ignoredUpdateVersion)
         #endif
         showLyricsTranslation = defaults.object(forKey: Keys.showTranslation) as? Bool ?? true
         showLyricsRomaji = defaults.object(forKey: Keys.showRomaji) as? Bool ?? false

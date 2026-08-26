@@ -181,16 +181,117 @@ struct NowPlayingView: View {
     @ViewBuilder
     private func compactLayout(size: CGSize) -> some View {
         #if os(iOS)
-        switch settings.nowPlayingMode {
-        case .classic:
-            classicCompactLayout(size: size)
-        case .immersive:
-            immersiveCompactLayout(size: size)
+        if size.width > size.height {
+            landscapePlayerLayout(size: size)
+        } else {
+            switch settings.nowPlayingMode {
+            case .classic:
+                classicCompactLayout(size: size)
+            case .immersive:
+                immersiveCompactLayout(size: size)
+            }
         }
         #else
         classicCompactLayout(size: size)
         #endif
     }
+
+    #if os(iOS)
+    /// iPhone 横屏采用参考图所示的横向播放器：信息和主控制在左，
+    /// 进度与歌词/队列/音量功能在右。倍速始终处于主控制区域。
+    private func landscapePlayerLayout(size: CGSize) -> some View {
+        HStack(spacing: 30) {
+            VStack(alignment: .leading, spacing: 20) {
+                HStack(spacing: 16) {
+                    artworkView(size: min(118, max(80, size.height * 0.34)))
+                        .scaleEffect(1)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(player.currentTrack?.name ?? "")
+                            .font(.system(size: 25, weight: .bold))
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                        Text(player.currentTrack?.artistNames ?? "")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.white.opacity(0.65))
+                            .lineLimit(1)
+                    }
+                    Spacer(minLength: 0)
+                }
+
+                HStack(spacing: 18) {
+                    Button(action: player.toggleShuffle) {
+                        Image(systemName: player.shuffleEnabled ? "shuffle" : "arrow.triangle.2.circlepath")
+                    }
+                    .foregroundStyle(player.shuffleEnabled ? Theme.accent : .white)
+                    .accessibilityLabel(player.shuffleEnabled ? "关闭随机播放" : "切换播放模式")
+
+                    Button(action: player.previous) {
+                        Image(systemName: "backward.fill")
+                    }
+                    .disabled(player.isFMMode)
+                    .opacity(player.isFMMode ? 0.35 : 1)
+                    .accessibilityLabel("上一首")
+
+                    Button(action: player.togglePlayPause) {
+                        Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 74, height: 74)
+                            .background(Theme.accent, in: Circle())
+                    }
+                    .buttonStyle(.pressable)
+                    .accessibilityLabel(player.isPlaying ? "暂停" : "播放")
+
+                    Button(action: player.next) {
+                        Image(systemName: "forward.fill")
+                    }
+                    .accessibilityLabel("下一首")
+
+                    Button(action: player.cyclePlaybackRate) {
+                        Text(player.playbackRate.displayName)
+                            .font(.system(size: 18, weight: .bold))
+                            .frame(minWidth: 46, minHeight: 44)
+                    }
+                    .accessibilityLabel("倍速播放，当前 \(player.playbackRate.displayName)")
+                }
+                .font(.system(size: 23, weight: .semibold))
+                .foregroundStyle(.white)
+            }
+            .frame(maxWidth: size.width * 0.48, alignment: .leading)
+
+            VStack(alignment: .trailing, spacing: 18) {
+                HStack(spacing: 24) {
+                    Button {
+                        withAnimation(AppAnimation.standard) { showLyricsOnMobile.toggle() }
+                    } label: {
+                        Image(systemName: showLyricsOnMobile ? "quote.bubble.fill" : "quote.bubble")
+                    }
+                    .accessibilityLabel(showLyricsOnMobile ? "显示封面" : "显示歌词")
+                    Button {
+                        withAnimation(AppAnimation.standard) { showQueueOnMobile.toggle() }
+                    } label: {
+                        Image(systemName: "list.bullet")
+                    }
+                    .accessibilityLabel(showQueueOnMobile ? "关闭播放队列" : "显示播放队列")
+                    RoutePickerButton(diameter: 42, glyphSize: 18)
+                }
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(.white)
+
+                Spacer(minLength: 0)
+
+                NowPlayingScrubber()
+                    .frame(maxWidth: .infinity)
+
+                CompactVolumeControl()
+                    .frame(maxWidth: .infinity)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .padding(.horizontal, 42)
+        .padding(.vertical, 28)
+    }
+    #endif
 
     private func classicCompactLayout(size: CGSize) -> some View {
         let artworkDim = min(size.width - 64, size.height * 0.38, 300)

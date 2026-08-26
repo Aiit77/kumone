@@ -13,6 +13,31 @@ enum RepeatMode: String, CaseIterable {
     }
 }
 
+enum PlaybackRate: Float, CaseIterable {
+    case one = 1.0
+    case oneAndQuarter = 1.25
+    case oneAndHalf = 1.5
+    case two = 2.0
+
+    var next: PlaybackRate {
+        let all = Self.allCases
+        let nextIndex = (all.firstIndex(of: self)! + 1) % all.count
+        return all[nextIndex]
+    }
+
+    var displayName: String {
+        rawValue == 1 ? "1×" : "\(rawValue.cleanRateText)×"
+    }
+}
+
+private extension Float {
+    var cleanRateText: String {
+        truncatingRemainder(dividingBy: 1) == 0
+            ? String(format: "%.0f", self)
+            : String(format: "%g", self)
+    }
+}
+
 /// Where the current queue came from — used for scrobbling and UI affordances.
 enum PlaySource: Equatable {
     case playlist(Int)
@@ -122,6 +147,14 @@ final class PlayerService: ObservableObject {
     }
 
     @Published private(set) var shuffleEnabled = false
+    @Published var playbackRate: PlaybackRate = .one {
+        didSet {
+            UserDefaults.standard.set(playbackRate.rawValue, forKey: "player.playbackRate")
+            guard isPlaying else { return }
+            engine.rate = playbackRate.rawValue
+            NowPlayingManager.shared.updateElapsed(progress, rate: Double(playbackRate.rawValue))
+        }
+    }
     @Published var volume: Float = 1 {
         didSet {
             engine.volume = volume
@@ -165,6 +198,8 @@ final class PlayerService: ObservableObject {
         engine.volume = volume
         repeatMode = UserDefaults.standard.string(forKey: "player.repeat")
             .flatMap(RepeatMode.init) ?? .off
+        let storedRate = UserDefaults.standard.float(forKey: "player.playbackRate")
+        playbackRate = PlaybackRate(rawValue: storedRate) ?? .one
 
         #if os(iOS)
         do {
@@ -206,7 +241,10 @@ final class PlayerService: ObservableObject {
                 let seconds = time.seconds
                 if seconds.isFinite, abs(seconds - self.progress) > 0.05 {
                     self.progress = seconds
-                    NowPlayingManager.shared.updateElapsed(seconds, rate: self.isPlaying ? 1 : 0)
+                    NowPlayingManager.shared.updateElapsed(
+                        seconds,
+                        rate: self.isPlaying ? Double(self.playbackRate.rawValue) : 0
+                    )
                 }
             }
         }
@@ -244,9 +282,8 @@ final class PlayerService: ObservableObject {
             guard wasPlayingBeforeInterruption, options.contains(.shouldResume) else { return }
             wasPlayingBeforeInterruption = false
             try? AVAudioSession.sharedInstance().setActive(true)
-            engine.play()
-            isPlaying = true
-            NowPlayingManager.shared.updateElapsed(progress, rate: 1)
+            resumePlayback()
+            NowPlayingManager.shared.updateElapsed(progress, rate: Double(playbackRate.rawValue))
         @unknown default:
             break
         }
@@ -305,16 +342,27 @@ final class PlayerService: ObservableObject {
             startPlaying(track, indexUnchanged: true)
             return
         } else {
-            engine.play()
-            isPlaying = true
+            resumePlayback()
         }
-        NowPlayingManager.shared.updateElapsed(progress, rate: isPlaying ? 1 : 0)
+        NowPlayingManager.shared.updateElapsed(
+            progress,
+            rate: isPlaying ? Double(playbackRate.rawValue) : 0
+        )
     }
 
     func pause() {
         engine.pause()
         isPlaying = false
         NowPlayingManager.shared.updateElapsed(progress, rate: 0)
+    }
+
+    func cyclePlaybackRate() {
+        playbackRate = playbackRate.next
+    }
+
+    private func resumePlayback() {
+        engine.playImmediately(atRate: playbackRate.rawValue)
+        isPlaying = true
     }
 
     func next() {
@@ -343,7 +391,10 @@ final class PlayerService: ObservableObject {
         progress = seconds
         engine.seek(to: CMTime(seconds: seconds, preferredTimescale: 600),
                     toleranceBefore: .zero, toleranceAfter: .zero)
-        NowPlayingManager.shared.updateElapsed(seconds, rate: isPlaying ? 1 : 0)
+        NowPlayingManager.shared.updateElapsed(
+            seconds,
+            rate: isPlaying ? Double(playbackRate.rawValue) : 0
+        )
     }
 
     func toggleShuffle() {
@@ -477,8 +528,7 @@ final class PlayerService: ObservableObject {
         if repeatMode == .one, !isFMMode {
             scrobbled = false
             seek(to: 0)
-            engine.play()
-            isPlaying = true
+            resumePlayback()
             return
         }
         advanceToNext(userInitiated: false)
@@ -569,13 +619,13 @@ final class PlayerService: ObservableObject {
             }
         }
         engine.replaceCurrentItem(with: item)
-        engine.play()
-        isPlaying = true
+        resumePlayback()
 
         if let time = data?.time, time > 0 {
             duration = TimeInterval(time) / 1000
             NowPlayingManager.shared.updateMetadata(for: track, duration: duration)
         }
+        NowPlayingManager.shared.updateElapsed(progress, rate: Double(playbackRate.rawValue))
     }
 
     private func loadLyrics(for track: Track, generation: Int) async {

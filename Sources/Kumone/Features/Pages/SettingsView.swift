@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var settings: SettingsManager
     @EnvironmentObject private var account: AccountStore
+    @ObservedObject private var player = PlayerService.shared
     @State private var cacheSize: String = String(localized: "计算中…")
 
     var body: some View {
@@ -16,6 +17,17 @@ struct SettingsView: View {
                 Text("无损与 Hi-Res 需要黑胶 VIP，未开通时自动回落到可用音质")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                #if os(iOS)
+                Button {
+                    player.cyclePlaybackRate()
+                } label: {
+                    LabeledContent("倍速播放") {
+                        Text(player.playbackRate.displayName)
+                            .foregroundStyle(Theme.accent)
+                    }
+                }
+                .accessibilityLabel("倍速播放，当前 \(player.playbackRate.displayName)")
+                #endif
                 Toggle("灰色歌曲解锁", isOn: $settings.enableUnblock)
                 Text("无版权 / 下架歌曲自动从第三方音源（酷我、酷狗等）匹配播放")
                     .font(.caption)
@@ -66,6 +78,28 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+
+            #if os(iOS)
+            Section("更新") {
+                Button {
+                    settings.suppressUpdatePrompts.toggle()
+                } label: {
+                    Label(
+                        settings.suppressUpdatePrompts ? "已屏蔽自动更新" : "屏蔽自动更新",
+                        systemImage: settings.suppressUpdatePrompts
+                            ? "bell.slash.fill"
+                            : "bell.slash"
+                    )
+                }
+                Text(
+                    settings.suppressUpdatePrompts
+                        ? "启动时不会显示新版本提醒；仍可随时手动检查。"
+                        : "关闭启动时的新版本提醒，不影响手动检查。"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+            #endif
 
             Section("关于") {
                 LabeledContent("Kumone", value: appVersion)
