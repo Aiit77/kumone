@@ -86,6 +86,8 @@
 
 /* Track list & context menu */
 "下一首播放" = "Play Next";
+"加入歌单…" = "Add to Playlist…";
+"更多操作" = "More Actions";
 "从「我喜欢」中移除" = "Remove from Liked Songs";
 "添加到「我喜欢」" = "Add to Liked Songs";
 "收藏到歌单…" = "Add to Playlist…";
