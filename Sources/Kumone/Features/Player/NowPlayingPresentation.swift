@@ -6,6 +6,8 @@ enum NowPlayingPresentationMetrics {
     // 仅供迷你播放器向上展开使用；不是播放页的下滑关闭手势。
     static let miniPlayerExpandDistance: CGFloat = 28
     static let miniPlayerExpandPrediction: CGFloat = 72
+    // 旧沉浸式布局仍被编译，但已不再作为 iOS 15 竖屏路径调用。
+    static let immersiveHeaderTopInset: CGFloat = 19
 
     static let presentationAnimation = Animation.spring(
         response: 0.52,
