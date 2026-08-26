@@ -3,6 +3,10 @@ import SwiftUI
 #if os(iOS)
 /// Shared presentation metrics retained for the explicit close-button animation.
 enum NowPlayingPresentationMetrics {
+    // 仅供迷你播放器向上展开使用；不是播放页的下滑关闭手势。
+    static let miniPlayerExpandDistance: CGFloat = 28
+    static let miniPlayerExpandPrediction: CGFloat = 72
+
     static let presentationAnimation = Animation.spring(
         response: 0.52,
         dampingFraction: 0.9,
@@ -16,6 +20,14 @@ enum NowPlayingPresentationMetrics {
         placementIsInline: Bool?
     ) -> Bool {
         placementIsInline ?? true
+    }
+
+    static func shouldExpandFromMiniPlayer(
+        translation: CGFloat,
+        predictedTranslation: CGFloat
+    ) -> Bool {
+        translation < -miniPlayerExpandDistance
+            || predictedTranslation < -miniPlayerExpandPrediction
     }
 }
 
