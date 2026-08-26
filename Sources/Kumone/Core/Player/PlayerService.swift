@@ -174,6 +174,8 @@ final class PlayerService: ObservableObject {
     /// Where playback was most recently started from, newest first —
     /// surfaced as "Recently Played" in the Dock menu.
     @Published private(set) var recentContexts: [PlayContext] = []
+    /// 本机最近播放用于补足远端 scrobble 的网络延迟或失败；页面仍沿用原有记录行样式。
+    private var localPlaybackHistory: [LocalPlaybackHistoryItem] = []
     @Published private(set) var lyrics: ParsedLyrics?
     @Published var activePanel: RightPanel?
     @Published var showNowPlaying = false
@@ -188,6 +190,19 @@ final class PlayerService: ObservableObject {
         guard !activeQueue.isEmpty, currentIndex >= 0 else { return playNextList }
         let rest = activeQueue.suffix(from: min(currentIndex + 1, activeQueue.count))
         return playNextList + Array(rest.prefix(200))
+    }
+
+    /// 本地回退记录按最后播放时间倒序，并使用远端页面相同的数据模型。
+    func localPlayRecords(week: Bool = false) -> [PlayRecordItem] {
+        let weekStart = Calendar.current.date(
+            byAdding: .day,
+            value: -7,
+            to: .now
+        ) ?? .distantPast
+        return localPlaybackHistory
+            .filter { !week || $0.lastPlayedAt >= weekStart }
+            .sorted { $0.lastPlayedAt > $1.lastPlayedAt }
+            .map { PlayRecordItem(playCount: $0.playCount, song: $0.track) }
     }
 
     var hasCurrentTrack: Bool { currentTrack != nil }
@@ -616,6 +631,7 @@ final class PlayerService: ObservableObject {
     private func startPlaying(_ track: Track, indexUnchanged: Bool = false) {
         scrobbleIfNeeded(completed: false)
         currentTrack = track
+        recordLocalPlayback(track)
         progress = 0
         duration = track.duration
         servedQuality = nil
@@ -746,6 +762,33 @@ final class PlayerService: ObservableObject {
     // MARK: - Persistence
 
     private static let recentContextsLimit = 6
+    private static let localPlaybackHistoryLimit = 300
+
+    private struct LocalPlaybackHistoryItem: Codable, Hashable {
+        let track: Track
+        var playCount: Int
+        var lastPlayedAt: Date
+    }
+
+    /// 在曲目选中后立即写入本机历史，不等待音源或歌词网络请求完成。
+    /// 因此歌词页切换、快速下一曲和短暂网络失败都不会丢失最近播放记录。
+    private func recordLocalPlayback(_ track: Track) {
+        if let index = localPlaybackHistory.firstIndex(where: { $0.track.id == track.id }) {
+            localPlaybackHistory[index].playCount += 1
+            localPlaybackHistory[index].lastPlayedAt = .now
+        } else {
+            localPlaybackHistory.insert(
+                .init(track: track, playCount: 1, lastPlayedAt: .now),
+                at: 0
+            )
+        }
+        localPlaybackHistory.sort { $0.lastPlayedAt > $1.lastPlayedAt }
+        if localPlaybackHistory.count > Self.localPlaybackHistoryLimit {
+            localPlaybackHistory.removeLast(
+                localPlaybackHistory.count - Self.localPlaybackHistoryLimit
+            )
+        }
+    }
 
     private func recordRecent(_ context: PlayContext) {
         recentContexts.removeAll { $0 == context }
@@ -812,6 +855,8 @@ final class PlayerService: ObservableObject {
         var shuffle: Bool
         /// Optional so state files written before recents existed still decode.
         var recentContexts: [PlayContext]?
+        /// Optional so existing installations can upgrade without data migration.
+        var localPlaybackHistory: [LocalPlaybackHistoryItem]?
     }
 
     private func persistState() {
@@ -820,7 +865,8 @@ final class PlayerService: ObservableObject {
             currentID: currentTrack?.id,
             repeatMode: repeatMode.rawValue,
             shuffle: shuffleEnabled,
-            recentContexts: recentContexts
+            recentContexts: recentContexts,
+            localPlaybackHistory: localPlaybackHistory
         )
         guard let data = try? JSONEncoder().encode(state) else { return }
         let url = Self.stateFileURL
@@ -837,6 +883,11 @@ final class PlayerService: ObservableObject {
         // empty queue, or the next played track persists an empty list over
         // them and the Dock menu loses its history for good.
         recentContexts = Array((state.recentContexts ?? []).prefix(Self.recentContextsLimit))
+        localPlaybackHistory = Array(
+            (state.localPlaybackHistory ?? [])
+                .sorted { $0.lastPlayedAt > $1.lastPlayedAt }
+                .prefix(Self.localPlaybackHistoryLimit)
+        )
         guard !state.queue.isEmpty else { return }
         queue = state.queue
         shuffleEnabled = state.shuffle

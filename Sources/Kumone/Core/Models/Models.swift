@@ -372,6 +372,12 @@ struct PlayRecordItem: Decodable, Hashable {
         case playCount, score, song
     }
 
+    init(playCount: Int, score: Int = 0, song: Track) {
+        self.playCount = playCount
+        self.score = score
+        self.song = song
+    }
+
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         playCount = (try? c.decode(Int.self, forKey: .playCount)) ?? 0

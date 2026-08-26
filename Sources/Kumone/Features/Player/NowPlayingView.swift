@@ -57,32 +57,34 @@ struct NowPlayingView: View {
                 }
             }
             .overlay(alignment: .topTrailing) {
-                if isCompact && settings.nowPlayingMode == .immersive {
+                if isCompact && settings.nowPlayingMode == .classic {
+                    // 经典模式沿用左上关闭控件的安全区与 36pt 圆形规格，
+                    // 将歌词入口恢复在右上角而不干扰沉浸模式。
+                    Button {
+                        withAnimation(AppAnimation.standard) {
+                            showLyricsOnMobile.toggle()
+                        }
+                    } label: {
+                        Image(systemName: showLyricsOnMobile ? "music.note" : "quote.bubble")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(showLyricsOnMobile ? Theme.accent : .white.opacity(0.85))
+                            .frame(width: 36, height: 36)
+                            .background(.white.opacity(0.12), in: Circle())
+                    }
+                    .buttonStyle(.pressable)
+                    .contentShape(Circle())
+                    .padding(.top, 20)
+                    .padding(.trailing, 20)
+                    .accessibilityLabel(showLyricsOnMobile ? "显示海报" : "显示歌词")
+                    .accessibilityIdentifier("classicLyricsFloatingButton")
+                } else if isCompact && settings.nowPlayingMode == .immersive {
                     // 右上角独立操作区：避免原版左侧小型按钮被海报层遮挡，
                     // 在 iOS 15 上提供用户标记位置可稳定点击的显式关闭入口。
-                    // 顶部歌词按钮保持原位；关闭按钮单独下移到其下方，避开收藏/更多区。
+                    // 沉浸模式不再放置歌词浮窗按钮；歌词切换保留在底部次级控制区，
+                    // 右上角仅保留收藏和可稳定触达的关闭入口。
                     // 外层 68pt 方形命中区大于可见圆形，避免 iOS 15 下触控被边缘裁切或难以命中。
                     VStack(alignment: .trailing, spacing: 12) {
-                        // 收藏与歌词浮窗使用相同的 44pt 圆形基线，避免在沉浸模式中上下错位。
-                        HStack(alignment: .center, spacing: 16) {
-                            immersiveFavoriteButton
-
-                            Button {
-                                withAnimation(AppAnimation.standard) {
-                                    showLyricsOnMobile.toggle()
-                                }
-                            } label: {
-                                Image(systemName: showLyricsOnMobile ? "music.note" : "quote.bubble")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(showLyricsOnMobile ? Theme.accent : .white.opacity(0.85))
-                                    .frame(width: 44, height: 44)
-                                    .background(.white.opacity(0.12), in: Circle())
-                            }
-                            .buttonStyle(.plain)
-                            .contentShape(Circle())
-                            .accessibilityLabel(showLyricsOnMobile ? "显示海报" : "显示歌词")
-                            .accessibilityIdentifier("immersiveLyricsFloatingButton")
-                        }
+                        immersiveFavoriteButton
 
                         Button(action: close) {
                             Image(systemName: "xmark")

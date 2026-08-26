@@ -90,13 +90,28 @@ struct RecentsView: View {
     }
 
     private func load() async {
-        guard let uid = account.profile?.userId else {
-            isLoading = false
-            return
-        }
         isLoading = records.isEmpty
-        records = (try? await NeteaseAPI.playRecords(uid: uid, week: week)) ?? []
+        let localRecords = player.localPlayRecords(week: week)
+        let remoteRecords: [PlayRecordItem]
+        if let uid = account.profile?.userId {
+            remoteRecords = (try? await NeteaseAPI.playRecords(uid: uid, week: week)) ?? []
+        } else {
+            remoteRecords = []
+        }
+        records = mergedPlayRecords(local: localRecords, remote: remoteRecords)
         isLoading = false
+    }
+
+    /// Keep the existing list UI unchanged while adding immediate on-device
+    /// playback history before NetEase's remote record service catches up.
+    private func mergedPlayRecords(
+        local: [PlayRecordItem],
+        remote: [PlayRecordItem]
+    ) -> [PlayRecordItem] {
+        var seenTrackIDs = Set<Int>()
+        let newestLocal = local.filter { seenTrackIDs.insert($0.song.id).inserted }
+        let remainingRemote = remote.filter { seenTrackIDs.insert($0.song.id).inserted }
+        return newestLocal + remainingRemote
     }
 }
 

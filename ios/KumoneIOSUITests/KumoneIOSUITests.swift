@@ -57,7 +57,7 @@ final class KumoneIOSUITests: XCTestCase {
     }
 
     @MainActor
-    func testImmersiveFavoriteAlignsWithLyricsFloatingButton() throws {
+    func testImmersiveModeRemovesTopLyricsFloatingButton() throws {
         let app = XCUIApplication()
         app.launchArguments = [
             "-uiTestingDemoTrack",
@@ -67,27 +67,13 @@ final class KumoneIOSUITests: XCTestCase {
         ]
         app.launch()
 
-        let favorite = app.buttons["immersiveFavoriteButton"]
-        let lyrics = app.buttons["immersiveLyricsFloatingButton"]
         XCTAssertTrue(
-            favorite.waitForExistence(timeout: 8),
-            "沉浸模式应显示收藏心形按钮"
+            app.buttons["immersiveFavoriteButton"].waitForExistence(timeout: 8),
+            "沉浸模式应继续显示收藏心形按钮"
         )
-        XCTAssertTrue(
-            lyrics.waitForExistence(timeout: 8),
-            "沉浸模式应显示歌词浮窗按钮"
-        )
-        XCTAssertEqual(
-            favorite.frame.midY,
-            lyrics.frame.midY,
-            accuracy: 1,
-            "收藏心形与歌词浮窗按钮应处于同一水平基线"
-        )
-        XCTAssertEqual(favorite.frame.size, lyrics.frame.size)
-        XCTAssertGreaterThanOrEqual(
-            lyrics.frame.minX - favorite.frame.maxX,
-            12,
-            "收藏心形应与歌词浮窗保留足够间距，避免误触"
+        XCTAssertFalse(
+            app.buttons["immersiveLyricsFloatingButton"].exists,
+            "沉浸模式右上角不应再显示浮窗歌词按钮"
         )
     }
 
@@ -138,10 +124,23 @@ final class KumoneIOSUITests: XCTestCase {
         ]
         app.launch()
 
+        let closeButton = app.buttons["nowPlayingCloseButton"]
+        let lyricsButton = app.buttons["classicLyricsFloatingButton"]
         XCTAssertTrue(
-            app.buttons["nowPlayingCloseButton"].waitForExistence(timeout: 8),
+            closeButton.waitForExistence(timeout: 8),
             "经典模式应继续显示原有左上角关闭控件"
         )
+        XCTAssertTrue(
+            lyricsButton.waitForExistence(timeout: 8),
+            "经典模式右上角应提供歌词浮窗按钮"
+        )
+        XCTAssertEqual(
+            closeButton.frame.midY,
+            lyricsButton.frame.midY,
+            accuracy: 1,
+            "经典模式歌词按钮应与左上关闭按钮处于同一高度"
+        )
+        XCTAssertEqual(closeButton.frame.size, lyricsButton.frame.size)
         XCTAssertFalse(
             app.buttons["nowPlayingPosterCloseButton"].exists,
             "沉浸模式专用右上角关闭按钮不应出现在经典模式"
