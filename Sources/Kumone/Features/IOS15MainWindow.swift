@@ -179,7 +179,6 @@ private struct IOS15MiniPlayerBar: View {
                 .strokeBorder(.primary.opacity(0.08), lineWidth: 0.5)
         }
         .shadow(color: .black.opacity(0.12), radius: 10, y: 4)
-        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("ios15MiniPlayer")
     }
 
@@ -253,7 +252,7 @@ private struct IOS15MiniPlayerBar: View {
                 .frame(minWidth: 54, minHeight: 42)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.pressable)
+        .buttonStyle(.plain)
         .accessibilityLabel("倍速播放")
         .accessibilityValue(player.playbackRate.displayName)
         .accessibilityIdentifier("miniPlayerPlaybackRateButton")
