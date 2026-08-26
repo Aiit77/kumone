@@ -117,7 +117,7 @@ public struct IOS15MainWindow: View {
 
     private var bottomChrome: some View {
         VStack(spacing: 8) {
-            if player.hasCurrentTrack {
+            if player.hasCurrentTrack || isUITestingDemoPlayer {
                 IOS15MiniPlayerBar()
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
@@ -130,6 +130,10 @@ public struct IOS15MainWindow: View {
         .padding(.bottom, keyboard.overlap)
         .animation(AppAnimation.standard, value: player.hasCurrentTrack)
         .animation(AppAnimation.quick, value: keyboard.overlap)
+    }
+
+    private var isUITestingDemoPlayer: Bool {
+        ProcessInfo.processInfo.arguments.contains("-uiTestingDemoTrack")
     }
 
     private func dismissKeyboardAndResetLayout() {
