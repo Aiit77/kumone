@@ -55,21 +55,43 @@ struct NowPlayingView: View {
             }
             .overlay(alignment: .topTrailing) {
                 if isCompact {
-                    Button {
-                        withAnimation(AppAnimation.standard) {
-                            showLyricsOnMobile.toggle()
+                    // 右上角独立操作区：避免原版左侧小型按钮被海报层遮挡，
+                    // 在 iOS 15 上提供用户标记位置可稳定点击的显式关闭入口。
+                    HStack(spacing: 10) {
+                        Button {
+                            withAnimation(AppAnimation.standard) {
+                                showLyricsOnMobile.toggle()
+                            }
+                        } label: {
+                            Image(systemName: showLyricsOnMobile ? "music.note" : "quote.bubble")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(showLyricsOnMobile ? Theme.accent : .white.opacity(0.85))
+                                .frame(width: 44, height: 44)
+                                .background(.white.opacity(0.12), in: Circle())
                         }
-                    } label: {
-                        Image(systemName: showLyricsOnMobile ? "music.note" : "quote.bubble")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(showLyricsOnMobile ? Theme.accent : .white.opacity(0.85))
-                            .frame(width: 36, height: 36)
-                            .background(.white.opacity(0.12), in: Circle())
+                        .buttonStyle(.plain)
+                        .contentShape(Circle())
+                        .accessibilityLabel(showLyricsOnMobile ? "显示海报" : "显示歌词")
+
+                        Button(action: close) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 48, height: 48)
+                                .background(.black.opacity(0.28), in: Circle())
+                                .overlay {
+                                    Circle()
+                                        .strokeBorder(.white.opacity(0.22), lineWidth: 0.7)
+                                }
+                        }
+                        .buttonStyle(.plain)
+                        .contentShape(Circle())
+                        .accessibilityLabel("关闭播放页")
+                        .accessibilityIdentifier("nowPlayingPosterCloseButton")
                     }
-                    .buttonStyle(.pressable)
-                    .padding(.top, 20)
-                    .padding(.trailing, 20)
-                    .accessibilityLabel(showLyricsOnMobile ? "显示海报" : "显示歌词")
+                    .padding(.top, max(16, geo.safeAreaInsets.top + 8))
+                    .padding(.trailing, 18)
+                    .zIndex(10)
                 }
             }
         }

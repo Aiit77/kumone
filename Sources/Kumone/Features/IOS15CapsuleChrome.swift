@@ -231,6 +231,9 @@ enum IOS15SelectionFeedback {
 final class IOS15KeyboardState: ObservableObject {
     @Published private(set) var overlap: CGFloat = 0
 
+    /// 小于该阈值的变化通常是安全区或候选栏波动，不应影响底部导航显示。
+    var isVisible: Bool { overlap > 20 }
+
     private var observers: [NSObjectProtocol] = []
 
     init(notificationCenter: NotificationCenter = .default) {

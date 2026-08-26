@@ -35,6 +35,9 @@ public struct IOS15MainWindow: View {
             .environment(\.openLogin, { showLogin = true })
             .task {
                 player.loadUITestDemoTrackIfNeeded()
+                if isUITestingNowPlaying {
+                    player.showNowPlaying = true
+                }
                 await account.bootstrap()
                 IOSUpdater.shared.check(interactive: false)
             }
@@ -115,25 +118,32 @@ public struct IOS15MainWindow: View {
         }
     }
 
+    @ViewBuilder
     private var bottomChrome: some View {
-        VStack(spacing: 8) {
-            if player.hasCurrentTrack || isUITestingDemoPlayer {
-                IOS15MiniPlayerBar()
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
+        // 搜索或其他文本输入激活键盘时，不将播放器和标签栏顶至键盘上方。
+        // 键盘收起后由同一安全区恢复原有底部 chrome，避免出现双层导航。
+        if !keyboard.isVisible {
+            VStack(spacing: 8) {
+                if player.hasCurrentTrack || isUITestingDemoPlayer {
+                    IOS15MiniPlayerBar()
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
 
-            IOS15CapsuleTabBar(items: Self.tabItems, selection: $selectedTab)
+                IOS15CapsuleTabBar(items: Self.tabItems, selection: $selectedTab)
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
+            .padding(.bottom, 6)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 8)
-        .padding(.bottom, 6)
-        .padding(.bottom, keyboard.overlap)
-        .animation(AppAnimation.standard, value: player.hasCurrentTrack)
-        .animation(AppAnimation.quick, value: keyboard.overlap)
     }
 
     private var isUITestingDemoPlayer: Bool {
         ProcessInfo.processInfo.arguments.contains("-uiTestingDemoTrack")
+    }
+
+    private var isUITestingNowPlaying: Bool {
+        ProcessInfo.processInfo.arguments.contains("-uiTestingNowPlaying")
     }
 
     private func dismissKeyboardAndResetLayout() {

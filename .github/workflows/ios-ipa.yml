@@ -58,7 +58,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY='' \
-            MARKETING_VERSION="0.3.7-ios15" \
+            MARKETING_VERSION="0.3.8-ios15" \
             CURRENT_PROJECT_VERSION="${GITHUB_RUN_NUMBER}" \
             build
 

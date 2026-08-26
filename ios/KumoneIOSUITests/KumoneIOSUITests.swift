@@ -22,4 +22,26 @@ final class KumoneIOSUITests: XCTestCase {
         rateButton.tap()
         XCTAssertEqual(rateButton.value as? String, "1.25×")
     }
+
+    @MainActor
+    func testPosterCloseButtonIsTappable() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-uiTestingDemoTrack",
+            "-uiTestingIOS15Root",
+            "-uiTestingNowPlaying"
+        ]
+        app.launch()
+
+        let closeButton = app.buttons["nowPlayingPosterCloseButton"]
+        XCTAssertTrue(
+            closeButton.waitForExistence(timeout: 8),
+            "海报播放页右上角应提供稳定的关闭按钮"
+        )
+        closeButton.tap()
+        XCTAssertFalse(
+            closeButton.waitForExistence(timeout: 3),
+            "关闭按钮点击后应关闭正在播放页面"
+        )
+    }
 }
