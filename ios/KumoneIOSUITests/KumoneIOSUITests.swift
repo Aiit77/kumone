@@ -36,7 +36,7 @@ final class KumoneIOSUITests: XCTestCase {
     }
 
     @MainActor
-    func testMiniPlayerPlaybackRateCyclesFromOneToOneQuarter() throws {
+    func testMiniPlayerPlaybackRateCyclesThroughThreeQuarters() throws {
         let app = XCUIApplication()
         // 通过启动参数注入本地演示曲目，避免测试依赖账户、网络或流媒体解析。
         app.launchArguments = ["-uiTestingDemoTrack", "-uiTestingIOS15Root"]
@@ -48,9 +48,23 @@ final class KumoneIOSUITests: XCTestCase {
             "迷你播放器的倍速按钮应具有稳定的自动化标识"
         )
         XCTAssertEqual(rateButton.value as? String, "1×")
+        XCTAssertGreaterThanOrEqual(rateButton.frame.width, 44)
+        XCTAssertLessThanOrEqual(
+            rateButton.frame.width,
+            46,
+            "倍速按钮应较旧版 54pt 视觉宽度更紧凑"
+        )
 
         rateButton.tap()
         XCTAssertEqual(rateButton.value as? String, "1.25×")
+        rateButton.tap()
+        XCTAssertEqual(rateButton.value as? String, "1.5×")
+        rateButton.tap()
+        XCTAssertEqual(rateButton.value as? String, "2×")
+        rateButton.tap()
+        XCTAssertEqual(rateButton.value as? String, "0.75×")
+        rateButton.tap()
+        XCTAssertEqual(rateButton.value as? String, "1×")
     }
 
     @MainActor

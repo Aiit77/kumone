@@ -367,6 +367,20 @@ final class IOS15KeyboardState: ObservableObject {
                 queue: .main
             ) { [weak self] _ in
                 self?.reset()
+            },
+            notificationCenter.addObserver(
+                forName: UIApplication.willResignActiveNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.resetForSceneDeactivation()
+            },
+            notificationCenter.addObserver(
+                forName: UIApplication.didBecomeActiveNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.resetForSceneActivation()
             }
         ]
     }
@@ -375,17 +389,26 @@ final class IOS15KeyboardState: ObservableObject {
         observers.forEach(NotificationCenter.default.removeObserver)
     }
 
-    /// 应用恢复前台时先清空旧状态；属于本应用的新键盘会在下一条系统通知中重新写入。
+    /// 失活时立即丢弃当前重叠值，避免其他应用的键盘帧让底部 chrome 保持隐藏。
+    func resetForSceneDeactivation() {
+        reset()
+    }
+
+    /// 应用恢复前台时先清空旧状态。延迟一次主线程检查，覆盖系统在切换应用后
+    /// 异步送达的旧键盘帧；本应用文本输入仍会通过本地焦点的通知重新写入。
     func resetForSceneActivation() {
         reset()
-        DispatchQueue.main.async { [weak self] in
-            self?.reset()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+            self?.resetUnlessLocallyEditing()
         }
     }
 
     private func update(from notification: Notification) {
-        guard UIApplication.shared.applicationState == .active,
+        let isLocalKeyboard = (notification.userInfo?[UIResponder.keyboardIsLocalUserInfoKey] as? NSNumber)?.boolValue ?? true
+        guard isLocalKeyboard,
+              UIApplication.shared.applicationState == .active,
               let window = activeWindow,
+              hasFirstResponder(in: window),
               let endFrameValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue else {
             reset()
             return
@@ -394,6 +417,13 @@ final class IOS15KeyboardState: ObservableObject {
         let endFrame = window.convert(endFrameValue.cgRectValue, from: nil)
         let newOverlap = max(0, window.bounds.maxY - endFrame.minY)
         overlap = min(newOverlap, window.bounds.height)
+    }
+
+    private func resetUnlessLocallyEditing() {
+        guard let window = activeWindow, hasFirstResponder(in: window) else {
+            reset()
+            return
+        }
     }
 
     private func reset() {
@@ -406,6 +436,11 @@ final class IOS15KeyboardState: ObservableObject {
             .first(where: { $0.activationState == .foregroundActive })?
             .windows
             .first(where: \.isKeyWindow)
+    }
+
+    private func hasFirstResponder(in view: UIView) -> Bool {
+        if view.isFirstResponder { return true }
+        return view.subviews.contains { hasFirstResponder(in: $0) }
     }
 }
 #endif

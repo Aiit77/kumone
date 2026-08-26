@@ -47,11 +47,19 @@ public struct IOS15MainWindow: View {
                 IOSUpdater.shared.check(interactive: false)
             }
             .onChange(of: scenePhase) { phase in
-                guard phase == .active else { return }
-                keyboard.resetForSceneActivation()
-                DispatchQueue.main.async {
-                    IOS15KeyboardDismissal.dismiss()
+                switch phase {
+                case .active:
                     keyboard.resetForSceneActivation()
+                    DispatchQueue.main.async {
+                        IOS15KeyboardDismissal.dismiss()
+                        keyboard.resetForSceneActivation()
+                    }
+                case .inactive, .background:
+                    // 其他应用打开键盘时，本应用不会拥有输入焦点；提前清空状态，
+                    // 防止返回前台后底部标签栏和迷你播放器继续被旧帧隐藏。
+                    keyboard.resetForSceneDeactivation()
+                @unknown default:
+                    keyboard.resetForSceneDeactivation()
                 }
             }
             .onChange(of: player.showNowPlaying) { isPresented in
@@ -290,9 +298,10 @@ private struct IOS15MiniPlayerBar: View {
     private var playbackRateButton: some View {
         Button(action: player.cyclePlaybackRate) {
             Text(player.playbackRate.displayName)
-                .font(.system(size: 17, weight: .heavy, design: .rounded))
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .monospacedDigit()
                 .foregroundStyle(Theme.accent)
-                .frame(minWidth: 54, minHeight: 42)
+                .frame(minWidth: 44, minHeight: 38)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

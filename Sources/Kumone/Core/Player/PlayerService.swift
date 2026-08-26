@@ -14,6 +14,7 @@ enum RepeatMode: String, CaseIterable {
 }
 
 enum PlaybackRate: Float, CaseIterable {
+    case threeQuarters = 0.75
     case one = 1.0
     case oneAndQuarter = 1.25
     case oneAndHalf = 1.5
