@@ -37,24 +37,26 @@ struct NowPlayingView: View {
             // stretch the ZStack and push the corner overlays off-screen.
             .frame(width: geo.size.width)
             .overlay(alignment: .topLeading) {
-                // v0.3.5 风格：以显式按钮关闭，不使用下滑手势或拖拽指示器。
-                Button {
-                    close()
-                } label: {
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.85))
-                        .frame(width: 36, height: 36)
-                        .background(.white.opacity(0.12), in: Circle())
+                // 经典模式保持构建号 19 的原始左上角关闭样式；沉浸模式使用右上角独立关闭入口。
+                if showsClassicChrome(isCompact: isCompact) {
+                    Button {
+                        close()
+                    } label: {
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.85))
+                            .frame(width: 36, height: 36)
+                            .background(.white.opacity(0.12), in: Circle())
+                    }
+                    .buttonStyle(.pressable)
+                    .padding(.top, 20)
+                    .padding(.leading, 20)
+                    .accessibilityLabel("关闭播放页")
+                    .accessibilityIdentifier("nowPlayingCloseButton")
                 }
-                .buttonStyle(.pressable)
-                .padding(.top, 20)
-                .padding(.leading, 20)
-                .accessibilityLabel("关闭播放页")
-                .accessibilityIdentifier("nowPlayingCloseButton")
             }
             .overlay(alignment: .topTrailing) {
-                if isCompact {
+                if isCompact && settings.nowPlayingMode == .immersive {
                     // 右上角独立操作区：避免原版左侧小型按钮被海报层遮挡，
                     // 在 iOS 15 上提供用户标记位置可稳定点击的显式关闭入口。
                     HStack(spacing: 10) {
@@ -108,14 +110,20 @@ struct NowPlayingView: View {
         }
         #if os(iOS)
         .onAppear {
-            // 旧版 iOS 15 路径始终从海报模式开始；更多菜单可直接请求歌词。
-            if case .lyrics? = player.iosNowPlayingStartPanel {
+            // 构建号 8 的沉浸模式默认进入歌词主界面；经典模式维持构建号 19 的海报起始行为。
+            if settings.nowPlayingMode == .immersive {
+                showLyricsOnMobile = true
+            } else if case .lyrics? = player.iosNowPlayingStartPanel {
                 showLyricsOnMobile = true
             } else {
                 showLyricsOnMobile = false
             }
             showQueueOnMobile = false
             player.iosNowPlayingStartPanel = nil
+        }
+        .onChange(of: settings.nowPlayingMode) { mode in
+            showLyricsOnMobile = mode == .immersive
+            showQueueOnMobile = false
         }
         #endif
         #if os(macOS)
@@ -141,6 +149,14 @@ struct NowPlayingView: View {
         }
         #else
         player.showNowPlaying = false
+        #endif
+    }
+
+    private func showsClassicChrome(isCompact: Bool) -> Bool {
+        #if os(iOS)
+        return !isCompact || settings.nowPlayingMode == .classic
+        #else
+        return true
         #endif
     }
 
@@ -202,8 +218,13 @@ struct NowPlayingView: View {
         if size.width > size.height {
             landscapePlayerLayout(size: size)
         } else {
-            // 回退至 v0.3.5 的竖屏海报/歌词界面，不再启用新版沉浸式下滑关闭路径。
-            classicCompactLayout(size: size)
+            // 仅回移构建号 8 的沉浸式布局；经典模式保持构建号 19 当前界面。
+            switch settings.nowPlayingMode {
+            case .classic:
+                classicCompactLayout(size: size)
+            case .immersive:
+                immersiveCompactLayout(size: size)
+            }
         }
         #else
         classicCompactLayout(size: size)

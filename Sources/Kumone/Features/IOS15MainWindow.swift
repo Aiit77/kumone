@@ -35,6 +35,11 @@ public struct IOS15MainWindow: View {
             .environment(\.openLogin, { showLogin = true })
             .task {
                 player.loadUITestDemoTrackIfNeeded()
+                if isUITestingImmersiveNowPlaying {
+                    settings.nowPlayingMode = .immersive
+                } else if isUITestingClassicNowPlaying {
+                    settings.nowPlayingMode = .classic
+                }
                 if isUITestingNowPlaying {
                     player.showNowPlaying = true
                 }
@@ -144,6 +149,14 @@ public struct IOS15MainWindow: View {
 
     private var isUITestingNowPlaying: Bool {
         ProcessInfo.processInfo.arguments.contains("-uiTestingNowPlaying")
+    }
+
+    private var isUITestingImmersiveNowPlaying: Bool {
+        ProcessInfo.processInfo.arguments.contains("-uiTestingImmersiveNowPlaying")
+    }
+
+    private var isUITestingClassicNowPlaying: Bool {
+        ProcessInfo.processInfo.arguments.contains("-uiTestingClassicNowPlaying")
     }
 
     private func dismissKeyboardAndResetLayout() {

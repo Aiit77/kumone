@@ -29,7 +29,8 @@ final class KumoneIOSUITests: XCTestCase {
         app.launchArguments = [
             "-uiTestingDemoTrack",
             "-uiTestingIOS15Root",
-            "-uiTestingNowPlaying"
+            "-uiTestingNowPlaying",
+            "-uiTestingImmersiveNowPlaying"
         ]
         app.launch()
 
@@ -42,6 +43,27 @@ final class KumoneIOSUITests: XCTestCase {
         XCTAssertFalse(
             closeButton.waitForExistence(timeout: 3),
             "关闭按钮点击后应关闭正在播放页面"
+        )
+    }
+
+    @MainActor
+    func testClassicModeKeepsOriginalCloseControl() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-uiTestingDemoTrack",
+            "-uiTestingIOS15Root",
+            "-uiTestingNowPlaying",
+            "-uiTestingClassicNowPlaying"
+        ]
+        app.launch()
+
+        XCTAssertTrue(
+            app.buttons["nowPlayingCloseButton"].waitForExistence(timeout: 8),
+            "经典模式应继续显示原有左上角关闭控件"
+        )
+        XCTAssertFalse(
+            app.buttons["nowPlayingPosterCloseButton"].exists,
+            "沉浸模式专用右上角关闭按钮不应出现在经典模式"
         )
     }
 }
