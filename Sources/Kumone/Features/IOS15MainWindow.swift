@@ -257,7 +257,7 @@ private struct IOS15MiniPlayerBar: View {
         Button(action: player.previous) {
             Image(systemName: "backward.fill")
                 .font(.system(size: 15, weight: .bold))
-                .foregroundStyle(player.isFMMode ? .secondary.opacity(0.35) : .secondary)
+                .foregroundStyle(player.isFMMode ? Color.secondary.opacity(0.35) : Color.secondary)
                 .frame(width: 38, height: 42)
         }
         .buttonStyle(.pressable)
