@@ -31,6 +31,7 @@ public struct IOSMainWindow: View {
             .preferredColorScheme(settings.appearance.colorScheme)
             .environment(\.openLogin, { showLogin = true })
             .task {
+                player.loadUITestDemoTrackIfNeeded()
                 await account.bootstrap()
                 IOSUpdater.shared.check(interactive: false)
             }
