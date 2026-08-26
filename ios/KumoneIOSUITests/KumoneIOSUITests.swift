@@ -6,6 +6,36 @@ final class KumoneIOSUITests: XCTestCase {
     }
 
     @MainActor
+    func testLiquidGlassNavigationKeepsSearchSeparateAndTappable() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uiTestingDemoTrack", "-uiTestingIOS15Root"]
+        app.launch()
+
+        let library = app.buttons["ios15Tab-4"]
+        let search = app.buttons["ios15LiquidGlassSearchButton"]
+        XCTAssertTrue(library.waitForExistence(timeout: 8))
+        XCTAssertTrue(search.waitForExistence(timeout: 8))
+        XCTAssertGreaterThanOrEqual(
+            search.frame.width,
+            56,
+            "独立搜索玻璃入口应保留至少 56pt 的横向触控范围"
+        )
+        XCTAssertGreaterThanOrEqual(
+            search.frame.height,
+            56,
+            "独立搜索玻璃入口应保留至少 56pt 的纵向触控范围"
+        )
+        XCTAssertGreaterThan(
+            search.frame.minX - library.frame.maxX,
+            0,
+            "搜索入口应与主胶囊导航保留独立间距，避免命中区重叠"
+        )
+
+        search.tap()
+        XCTAssertTrue(search.isSelected, "点击独立搜索入口后应切换至搜索标签")
+    }
+
+    @MainActor
     func testMiniPlayerPlaybackRateCyclesFromOneToOneQuarter() throws {
         let app = XCUIApplication()
         // 通过启动参数注入本地演示曲目，避免测试依赖账户、网络或流媒体解析。

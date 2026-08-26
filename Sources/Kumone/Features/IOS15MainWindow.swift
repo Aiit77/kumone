@@ -134,7 +134,15 @@ public struct IOS15MainWindow: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
 
-                IOS15CapsuleTabBar(items: Self.tabItems, selection: $selectedTab)
+                HStack(spacing: 10) {
+                    IOS15CapsuleTabBar(items: Self.primaryTabItems, selection: $selectedTab)
+                        .frame(maxWidth: .infinity)
+                        .layoutPriority(1)
+
+                    IOS15LiquidGlassSearchButton(isSelected: selectedTab == 3) {
+                        selectTab(3)
+                    }
+                }
             }
             .padding(.horizontal, 12)
             .padding(.top, 8)
@@ -173,11 +181,19 @@ public struct IOS15MainWindow: View {
         .navigationViewStyle(StackNavigationViewStyle())
     }
 
-    private static let tabItems: [IOS15CapsuleTabBar.Item] = [
+    private func selectTab(_ tab: Int) {
+        guard selectedTab != tab else { return }
+        IOS15SelectionFeedback.perform()
+        withAnimation(AppAnimation.standard) {
+            selectedTab = tab
+        }
+    }
+
+    /// 搜索在参考图中是主胶囊右侧的独立玻璃入口，因此不参与主标签的等宽分区。
+    private static let primaryTabItems: [IOS15CapsuleTabBar.Item] = [
         .init(id: 0, title: "推荐", icon: "house"),
         .init(id: 1, title: "精选", icon: "square.grid.2x2"),
         .init(id: 2, title: "漫游", icon: "dot.radiowaves.left.and.right"),
-        .init(id: 3, title: "搜索", icon: "magnifyingglass"),
         .init(id: 4, title: "我的", icon: "person.crop.circle"),
     ]
 }

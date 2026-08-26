@@ -25,32 +25,34 @@ struct IOS15CapsuleTabBar: View {
         GeometryReader { proxy in
             let count = max(items.count, 1)
             let itemWidth = proxy.size.width / CGFloat(count)
-            let selectedIndex = items.firstIndex { $0.id == selection } ?? 0
+            let selectedIndex = items.firstIndex { $0.id == selection }
 
             ZStack(alignment: .leading) {
-                Capsule(style: .continuous)
-                    .fill(selectionFill)
-                    .frame(width: max(0, itemWidth - innerInset * 2), height: contentHeight)
-                    .overlay {
-                        Capsule(style: .continuous)
-                            .strokeBorder(selectionRim, lineWidth: 0.7)
-                            .overlay(alignment: .top) {
-                                Capsule(style: .continuous)
-                                    .strokeBorder(.white.opacity(colorScheme == .dark ? 0.14 : 0.48), lineWidth: 0.5)
-                                    .mask(
-                                        Rectangle()
-                                            .frame(height: contentHeight * 0.42)
-                                            .frame(maxHeight: .infinity, alignment: .top)
-                                    )
-                            }
-                    }
-                    .shadow(
-                        color: Theme.accent.opacity(colorScheme == .dark ? 0.30 : 0.18),
-                        radius: colorScheme == .dark ? 8 : 6,
-                        y: 3
-                    )
-                    .offset(x: CGFloat(selectedIndex) * itemWidth + innerInset)
-                    .animation(selectionAnimation, value: selection)
+                if let selectedIndex {
+                    Capsule(style: .continuous)
+                        .fill(selectionFill)
+                        .frame(width: max(0, itemWidth - innerInset * 2), height: contentHeight)
+                        .overlay {
+                            Capsule(style: .continuous)
+                                .strokeBorder(selectionRim, lineWidth: 0.7)
+                                .overlay(alignment: .top) {
+                                    Capsule(style: .continuous)
+                                        .strokeBorder(.white.opacity(colorScheme == .dark ? 0.14 : 0.48), lineWidth: 0.5)
+                                        .mask(
+                                            Rectangle()
+                                                .frame(height: contentHeight * 0.42)
+                                                .frame(maxHeight: .infinity, alignment: .top)
+                                        )
+                                }
+                        }
+                        .shadow(
+                            color: Theme.accent.opacity(colorScheme == .dark ? 0.30 : 0.18),
+                            radius: colorScheme == .dark ? 8 : 6,
+                            y: 3
+                        )
+                        .offset(x: CGFloat(selectedIndex) * itemWidth + innerInset)
+                        .animation(selectionAnimation, value: selection)
+                }
 
                 HStack(spacing: 0) {
                     ForEach(items) { item in
@@ -63,6 +65,7 @@ struct IOS15CapsuleTabBar: View {
                         }
                         .buttonStyle(IOS15CapsuleButtonStyle())
                         .accessibilityLabel(item.title)
+                        .accessibilityIdentifier("ios15Tab-\(item.id)")
                         .accessibilityAddTraits(selection == item.id ? .isSelected : [])
                     }
                 }
@@ -70,13 +73,39 @@ struct IOS15CapsuleTabBar: View {
         }
         .frame(height: contentHeight)
         .padding(innerInset)
-        .background(.ultraThinMaterial, in: Capsule(style: .continuous))
+        .background {
+            Capsule(style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    Capsule(style: .continuous)
+                        .fill(glassTint)
+                }
+        }
         .overlay {
             Capsule(style: .continuous)
-                .strokeBorder(containerRim, lineWidth: colorScheme == .dark ? 0.9 : 0.6)
+                .strokeBorder(containerRim, lineWidth: colorScheme == .dark ? 0.9 : 0.65)
+                .overlay(alignment: .top) {
+                    Capsule(style: .continuous)
+                        .strokeBorder(.white.opacity(colorScheme == .dark ? 0.18 : 0.60), lineWidth: 0.7)
+                        .mask(
+                            Rectangle()
+                                .frame(height: contentHeight * 0.38)
+                                .frame(maxHeight: .infinity, alignment: .top)
+                        )
+                }
+                .overlay(alignment: .bottom) {
+                    Capsule(style: .continuous)
+                        .strokeBorder(.white.opacity(colorScheme == .dark ? 0.05 : 0.22), lineWidth: 0.5)
+                        .mask(
+                            Rectangle()
+                                .frame(height: contentHeight * 0.24)
+                                .frame(maxHeight: .infinity, alignment: .bottom)
+                        )
+                }
         }
         .clipShape(Capsule(style: .continuous))
-        .shadow(color: .black.opacity(colorScheme == .dark ? 0.34 : 0.12), radius: 14, y: 5)
+        .shadow(color: .black.opacity(colorScheme == .dark ? 0.34 : 0.14), radius: 14, y: 5)
+        .shadow(color: .white.opacity(colorScheme == .dark ? 0.05 : 0.20), radius: 2, y: -1)
     }
 
     private func label(for item: Item) -> some View {
@@ -104,8 +133,28 @@ struct IOS15CapsuleTabBar: View {
         reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.82)
     }
 
-    private var selectionFill: Color {
-        Theme.accent.opacity(colorScheme == .dark ? 0.36 : 0.16)
+    private var selectionFill: LinearGradient {
+        LinearGradient(
+            colors: [
+                Theme.accent.opacity(colorScheme == .dark ? 0.48 : 0.30),
+                Theme.accent.opacity(colorScheme == .dark ? 0.25 : 0.13),
+                .white.opacity(colorScheme == .dark ? 0.06 : 0.15),
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private var glassTint: LinearGradient {
+        LinearGradient(
+            colors: [
+                .white.opacity(colorScheme == .dark ? 0.06 : 0.20),
+                Theme.accent.opacity(colorScheme == .dark ? 0.08 : 0.045),
+                .clear,
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 
     private var selectionRim: Color {
@@ -118,6 +167,73 @@ struct IOS15CapsuleTabBar: View {
 
     private var unselectedForeground: Color {
         .primary.opacity(colorScheme == .dark ? 0.90 : 0.64)
+    }
+}
+
+/// 参考液态玻璃导航的独立搜索入口：与主胶囊分离，但共享底部基线和材质层级。
+struct IOS15LiquidGlassSearchButton: View {
+    let isSelected: Bool
+    let action: () -> Void
+
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private let contentSize: CGFloat = 56
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 25, weight: .bold))
+                .foregroundStyle(isSelected ? Theme.accent : .primary.opacity(colorScheme == .dark ? 0.92 : 0.84))
+                .frame(width: contentSize, height: contentSize)
+                .background {
+                    Circle()
+                        .fill(.ultraThinMaterial)
+                        .overlay {
+                            Circle()
+                                .fill(searchTint)
+                        }
+                }
+                .overlay {
+                    Circle()
+                        .strokeBorder(.white.opacity(colorScheme == .dark ? 0.24 : 0.62), lineWidth: 0.75)
+                        .overlay(alignment: .trailing) {
+                            Capsule(style: .continuous)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.white.opacity(0.58), .white.opacity(0.08), .clear],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                                .frame(width: 8, height: contentSize * 0.58)
+                                .blur(radius: 0.5)
+                                .padding(.trailing, 5)
+                        }
+                }
+                .shadow(color: .black.opacity(colorScheme == .dark ? 0.32 : 0.14), radius: 10, y: 4)
+                .shadow(color: .white.opacity(colorScheme == .dark ? 0.04 : 0.22), radius: 2, y: -1)
+                .contentShape(Circle())
+        }
+        .buttonStyle(IOS15CapsuleButtonStyle())
+        .frame(width: 64, height: 64)
+        .contentShape(Circle())
+        .accessibilityLabel("搜索")
+        .accessibilityIdentifier("ios15LiquidGlassSearchButton")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .animation(reduceMotion ? nil : AppAnimation.standard, value: isSelected)
+    }
+
+    private var searchTint: LinearGradient {
+        LinearGradient(
+            colors: [
+                Theme.accent.opacity(isSelected ? 0.26 : (colorScheme == .dark ? 0.12 : 0.06)),
+                .white.opacity(colorScheme == .dark ? 0.06 : 0.16),
+                .clear,
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 }
 
