@@ -437,13 +437,25 @@ final class PlayerService: ObservableObject {
     #endif
 
     /// Stops playback and clears the currently presented mini-player surface.
+    /// Cancelling the active resolution generation prevents a delayed network result
+    /// from restoring a track after the user explicitly closes the player.
     func closeCurrentTrack() {
+        resolveGeneration += 1
         engine.pause()
+        engine.replaceCurrentItem(with: nil)
         isPlaying = false
         isBuffering = false
+        queue.removeAll()
+        shuffledQueue.removeAll()
+        playNextList.removeAll()
+        currentIndex = -1
         currentTrack = nil
+        source = .none
+        isFMMode = false
+        fmUpcoming.removeAll()
         duration = 0
         progress = 0
+        lyrics = nil
         isScrubbing = false
         showNowPlaying = false
         activePanel = nil
@@ -451,6 +463,7 @@ final class PlayerService: ObservableObject {
         iosNowPlayingStartPanel = nil
         #endif
         NowPlayingManager.shared.clear()
+        persistState()
     }
 
     private func resumePlayback() {

@@ -196,19 +196,15 @@ struct IOS15LiquidGlassSearchButton: View {
                 }
                 .overlay {
                     Circle()
-                        .strokeBorder(.white.opacity(colorScheme == .dark ? 0.24 : 0.62), lineWidth: 0.75)
-                        .overlay(alignment: .trailing) {
-                            Capsule(style: .continuous)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [.white.opacity(0.58), .white.opacity(0.08), .clear],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
+                        .strokeBorder(.white.opacity(colorScheme == .dark ? 0.22 : 0.58), lineWidth: 0.75)
+                        .overlay(alignment: .top) {
+                            Circle()
+                                .strokeBorder(.white.opacity(colorScheme == .dark ? 0.10 : 0.30), lineWidth: 0.5)
+                                .mask(
+                                    Rectangle()
+                                        .frame(height: contentSize * 0.30)
+                                        .frame(maxHeight: .infinity, alignment: .top)
                                 )
-                                .frame(width: 8, height: contentSize * 0.58)
-                                .blur(radius: 0.5)
-                                .padding(.trailing, 5)
                         }
                 }
                 .shadow(color: .black.opacity(colorScheme == .dark ? 0.32 : 0.14), radius: 10, y: 4)
@@ -227,9 +223,9 @@ struct IOS15LiquidGlassSearchButton: View {
     private var searchTint: LinearGradient {
         LinearGradient(
             colors: [
-                Theme.accent.opacity(isSelected ? 0.26 : (colorScheme == .dark ? 0.12 : 0.06)),
-                .white.opacity(colorScheme == .dark ? 0.06 : 0.16),
-                .clear,
+                .white.opacity(colorScheme == .dark ? 0.08 : 0.18),
+                Theme.accent.opacity(isSelected ? 0.18 : 0.035),
+                .black.opacity(colorScheme == .dark ? 0.10 : 0.025),
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing

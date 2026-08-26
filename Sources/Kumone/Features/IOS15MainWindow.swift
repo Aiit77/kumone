@@ -14,6 +14,9 @@ public struct IOS15MainWindow: View {
     @Environment(\.scenePhase) private var scenePhase
 
     @State private var selectedTab = 0
+    /// 搜索是独立玻璃入口；递增该值可以在重复点击时回到干净的搜索根视图，
+    /// 避免旧 NavigationView 栈将用户留在歌单详情页。
+    @State private var searchRouteGeneration = 0
     @State private var showLogin = false
     @State private var showSettings = false
 
@@ -125,7 +128,7 @@ public struct IOS15MainWindow: View {
             legacyNavigation { FMView() }
         case 3:
             // 保持 v0.3.7 搜索结构；其目的地式 NavigationLink 可在 iOS 15 使用。
-            legacyNavigation { SearchView(query: "") }
+            legacyNavigation { SearchView(query: "").id(searchRouteGeneration) }
         default:
             legacyNavigation { IOS15CardLibraryView(showLogin: $showLogin, showSettings: $showSettings) }
         }
@@ -137,7 +140,7 @@ public struct IOS15MainWindow: View {
         // 键盘收起后由同一安全区恢复原有底部 chrome，避免出现双层导航。
         if !keyboard.isVisible {
             VStack(spacing: 8) {
-                if player.hasCurrentTrack || isUITestingDemoPlayer {
+                if player.hasCurrentTrack {
                     IOS15MiniPlayerBar()
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
@@ -190,9 +193,13 @@ public struct IOS15MainWindow: View {
     }
 
     private func selectTab(_ tab: Int) {
-        guard selectedTab != tab else { return }
         IOS15SelectionFeedback.perform()
         withAnimation(AppAnimation.standard) {
+            if tab == 3 {
+                // 独立搜索入口无论当前是否已选中，都应回到搜索根页，
+                // 不能复用此前页面可能保留的详情导航状态。
+                searchRouteGeneration &+= 1
+            }
             selectedTab = tab
         }
     }
@@ -221,7 +228,7 @@ private struct IOS15MiniPlayerBar: View {
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
         }
-        .frame(height: 74)
+        .frame(height: 86)
         .padding(.horizontal, 10)
         .padding(.vertical, 7)
         .background(.regularMaterial, in: Capsule(style: .continuous))
@@ -423,18 +430,40 @@ private struct IOS15MiniPlayerProgress: View {
     @EnvironmentObject private var player: PlayerService
 
     var body: some View {
-        Slider(
-            value: Binding(
-                get: { min(max(player.progress, 0), max(player.duration, 1)) },
-                set: { player.seek(to: $0) }
-            ),
-            in: 0...max(player.duration, 1)
-        )
-        .tint(Theme.accent)
-        .controlSize(.small)
-        .accessibilityLabel("播放进度")
-        .accessibilityValue("\(Int(player.progress.rounded())) 秒")
-        .accessibilityIdentifier("miniPlayerProgress")
+        VStack(spacing: 0) {
+            Slider(
+                value: Binding(
+                    get: { min(max(player.progress, 0), max(player.duration, 1)) },
+                    set: { player.seek(to: $0) }
+                ),
+                in: 0...max(player.duration, 1)
+            )
+            .tint(Theme.accent)
+            .controlSize(.small)
+            .accessibilityLabel("播放进度")
+            .accessibilityValue("\(timeText(player.progress)) / \(timeText(player.duration))")
+            .accessibilityIdentifier("miniPlayerProgress")
+
+            HStack {
+                Text(timeText(player.progress))
+                Spacer(minLength: 8)
+                Text(timeText(player.duration))
+            }
+            .font(.system(size: 9.5, weight: .medium, design: .monospaced))
+            .foregroundStyle(.secondary)
+            .accessibilityHidden(true)
+        }
+    }
+
+    private func timeText(_ interval: TimeInterval) -> String {
+        let totalSeconds = max(0, Int(interval.rounded(.down)))
+        let hours = totalSeconds / 3_600
+        let minutes = (totalSeconds % 3_600) / 60
+        let seconds = totalSeconds % 60
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+        }
+        return String(format: "%d:%02d", minutes, seconds)
     }
 }
 

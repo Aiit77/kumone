@@ -33,6 +33,47 @@ final class KumoneIOSUITests: XCTestCase {
 
         search.tap()
         XCTAssertTrue(search.isSelected, "点击独立搜索入口后应切换至搜索标签")
+        search.tap()
+        XCTAssertTrue(search.isSelected, "重复点击搜索入口仍应停留在干净的搜索根页")
+    }
+
+    @MainActor
+    func testMiniPlayerShowsCurrentAndTotalPlaybackTime() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uiTestingDemoTrack", "-uiTestingIOS15Root"]
+        app.launch()
+
+        let progress = app.sliders["miniPlayerProgress"]
+        XCTAssertTrue(progress.waitForExistence(timeout: 8))
+        XCTAssertEqual(
+            progress.value as? String,
+            "0:00 / 3:00",
+            "迷你播放器应在进度条两端提供当前播放时间和总时长"
+        )
+    }
+
+    @MainActor
+    func testClosingMiniPlayerDoesNotRestoreFromStalePlaybackState() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uiTestingDemoTrack", "-uiTestingIOS15Root"]
+        app.launch()
+
+        let miniPlayer = app.otherElements["ios15MiniPlayer"]
+        let moreMenu = app.buttons["miniPlayerMoreMenu"]
+        XCTAssertTrue(miniPlayer.waitForExistence(timeout: 8))
+        XCTAssertTrue(moreMenu.waitForExistence(timeout: 8))
+        moreMenu.tap()
+
+        let close = app.buttons["关闭播放器"]
+        XCTAssertTrue(close.waitForExistence(timeout: 4))
+        close.tap()
+        XCTAssertFalse(miniPlayer.waitForExistence(timeout: 3))
+
+        app.buttons["ios15Tab-2"].tap()
+        XCTAssertFalse(
+            miniPlayer.exists,
+            "进入漫游页不应从延迟播放解析或旧队列恢复已关闭的迷你播放器"
+        )
     }
 
     @MainActor
