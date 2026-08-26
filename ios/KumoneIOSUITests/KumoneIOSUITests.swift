@@ -39,6 +39,16 @@ final class KumoneIOSUITests: XCTestCase {
             closeButton.waitForExistence(timeout: 8),
             "海报播放页右上角应提供稳定的关闭按钮"
         )
+        XCTAssertGreaterThanOrEqual(
+            closeButton.frame.width,
+            64,
+            "沉浸模式关闭按钮应提供至少 64pt 的横向触控范围"
+        )
+        XCTAssertGreaterThanOrEqual(
+            closeButton.frame.height,
+            64,
+            "沉浸模式关闭按钮应提供至少 64pt 的纵向触控范围"
+        )
         closeButton.tap()
         XCTAssertFalse(
             closeButton.waitForExistence(timeout: 3),

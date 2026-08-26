@@ -59,7 +59,9 @@ struct NowPlayingView: View {
                 if isCompact && settings.nowPlayingMode == .immersive {
                     // 右上角独立操作区：避免原版左侧小型按钮被海报层遮挡，
                     // 在 iOS 15 上提供用户标记位置可稳定点击的显式关闭入口。
-                    HStack(spacing: 10) {
+                    // 顶部歌词按钮保持原位；关闭按钮单独下移到其下方，避开收藏/更多区。
+                    // 外层 68pt 方形命中区大于可见圆形，避免 iOS 15 下触控被边缘裁切或难以命中。
+                    VStack(alignment: .trailing, spacing: 12) {
                         Button {
                             withAnimation(AppAnimation.standard) {
                                 showLyricsOnMobile.toggle()
@@ -77,23 +79,26 @@ struct NowPlayingView: View {
 
                         Button(action: close) {
                             Image(systemName: "xmark")
-                                .font(.system(size: 16, weight: .bold))
+                                .font(.system(size: 18, weight: .bold))
                                 .foregroundStyle(.white)
-                                .frame(width: 48, height: 48)
-                                .background(.black.opacity(0.28), in: Circle())
+                                .frame(width: 50, height: 50)
+                                .background(.black.opacity(0.34), in: Circle())
                                 .overlay {
                                     Circle()
-                                        .strokeBorder(.white.opacity(0.22), lineWidth: 0.7)
+                                        .strokeBorder(.white.opacity(0.28), lineWidth: 0.8)
                                 }
+                                .shadow(color: .black.opacity(0.22), radius: 7, y: 3)
+                                .frame(width: 68, height: 68)
                         }
                         .buttonStyle(.plain)
-                        .contentShape(Circle())
+                        .contentShape(Rectangle())
+                        .allowsHitTesting(true)
                         .accessibilityLabel("关闭播放页")
                         .accessibilityIdentifier("nowPlayingPosterCloseButton")
                     }
-                    .padding(.top, max(16, geo.safeAreaInsets.top + 8))
-                    .padding(.trailing, 18)
-                    .zIndex(10)
+                    .padding(.top, max(22, geo.safeAreaInsets.top + 14))
+                    .padding(.trailing, 12)
+                    .zIndex(100)
                 }
             }
         }
