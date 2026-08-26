@@ -9,7 +9,7 @@ final class KumoneIOSUITests: XCTestCase {
     func testMiniPlayerPlaybackRateCyclesFromOneToOneQuarter() throws {
         let app = XCUIApplication()
         // 通过启动参数注入本地演示曲目，避免测试依赖账户、网络或流媒体解析。
-        app.launchArguments = ["-uiTestingDemoTrack"]
+        app.launchArguments = ["-uiTestingDemoTrack", "-uiTestingIOS15Root"]
         app.launch()
 
         let rateButton = app.buttons["miniPlayerPlaybackRateButton"]
