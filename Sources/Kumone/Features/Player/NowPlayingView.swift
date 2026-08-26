@@ -17,6 +17,7 @@ struct NowPlayingView: View {
     @State private var isUserScrolling = false
     @State private var resumeTask: Task<Void, Never>?
     @State private var showLyricsOnMobile = false
+    @StateObject private var toasts = ToastCenter.shared
     #if os(iOS)
     @State private var showQueueOnMobile = false
     #endif
@@ -63,7 +64,7 @@ struct NowPlayingView: View {
                     // 外层 68pt 方形命中区大于可见圆形，避免 iOS 15 下触控被边缘裁切或难以命中。
                     VStack(alignment: .trailing, spacing: 12) {
                         // 收藏与歌词浮窗使用相同的 44pt 圆形基线，避免在沉浸模式中上下错位。
-                        HStack(alignment: .center, spacing: 8) {
+                        HStack(alignment: .center, spacing: 16) {
                             immersiveFavoriteButton
 
                             Button {
@@ -115,6 +116,16 @@ struct NowPlayingView: View {
         // iOS keeps its safe area: there the inset is the status bar / notch.
         .ignoresSafeArea()
         #endif
+        .overlay(alignment: .top) {
+            // 全屏播放页覆盖根窗口，因此将全局反馈镜像到此层，
+            // 确保“下一曲播放”等操作在沉浸模式里仍可被用户确认。
+            if let toast = toasts.current {
+                ToastView(toast: toast)
+                    .padding(.top, 8)
+                    .accessibilityIdentifier("nowPlayingToast")
+                    .zIndex(200)
+            }
+        }
         .preferredColorScheme(.dark)
         .task(id: player.currentTrack?.id) {
             await loadArtwork()
@@ -950,6 +961,7 @@ private struct CompactTrackHeader: View {
     @EnvironmentObject private var player: PlayerService
     @EnvironmentObject private var account: AccountStore
     @State private var showAddToPlaylist = false
+    @State private var showMoreActions = false
 
     let showsExpandedArtwork: Bool
 
@@ -990,29 +1002,8 @@ private struct CompactTrackHeader: View {
             .accessibilityIdentifier("immersiveTrackMetadata")
 
             if let track = player.currentTrack {
-                Menu {
-                    Button {
-                        player.addToPlayNext(track)
-                    } label: {
-                        Label("下一首播放", systemImage: "text.line.first.and.arrowtriangle.forward")
-                    }
-
-                    Button {
-                        showAddToPlaylist = true
-                    } label: {
-                        Label("加入歌单…", systemImage: "music.note.list")
-                    }
-
-                    Divider()
-
-                    Button {
-                        Platform.copyToPasteboard(
-                            string: "https://music.163.com/#/song?id=\(track.id)"
-                        )
-                        ToastCenter.shared.show(String(localized: "链接已复制"))
-                    } label: {
-                        Label("复制链接", systemImage: "link")
-                    }
+                Button {
+                    showMoreActions = true
                 } label: {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 21, weight: .medium))
@@ -1023,6 +1014,37 @@ private struct CompactTrackHeader: View {
                 .buttonStyle(.pressable)
                 .accessibilityLabel("更多操作")
                 .accessibilityIdentifier("immersiveMoreMenu")
+                .confirmationDialog(
+                    "更多操作",
+                    isPresented: $showMoreActions,
+                    titleVisibility: .hidden
+                ) {
+                    Button {
+                        // 在当前播放页点击“下一曲播放”应立即推进到下一首，
+                        // 而非将正在播放的同一首歌重复插入待播列表。
+                        player.next()
+                    } label: {
+                        Label("下一曲播放", systemImage: "forward.fill")
+                    }
+                    .accessibilityIdentifier("immersiveNextTrackAction")
+
+                    Button {
+                        showAddToPlaylist = true
+                    } label: {
+                        Label("加入歌单…", systemImage: "music.note.list")
+                    }
+
+                    Button {
+                        Platform.copyToPasteboard(
+                            string: "https://music.163.com/#/song?id=\(track.id)"
+                        )
+                        ToastCenter.shared.show(String(localized: "链接已复制"))
+                    } label: {
+                        Label("复制链接", systemImage: "link")
+                    }
+
+                    Button("取消", role: .cancel) {}
+                }
             }
         }
         .accessibilityElement(children: .contain)

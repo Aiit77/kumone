@@ -84,6 +84,47 @@ final class KumoneIOSUITests: XCTestCase {
             "收藏心形与歌词浮窗按钮应处于同一水平基线"
         )
         XCTAssertEqual(favorite.frame.size, lyrics.frame.size)
+        XCTAssertGreaterThanOrEqual(
+            lyrics.frame.minX - favorite.frame.maxX,
+            12,
+            "收藏心形应与歌词浮窗保留足够间距，避免误触"
+        )
+    }
+
+    @MainActor
+    func testImmersiveMoreMenuAdvancesToNextTrack() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "-uiTestingDemoTrack",
+            "-uiTestingIOS15Root",
+            "-uiTestingNowPlaying",
+            "-uiTestingImmersiveNowPlaying"
+        ]
+        app.launch()
+
+        XCTAssertTrue(
+            app.staticTexts["UI Test Track"].waitForExistence(timeout: 8),
+            "测试应从确定的第一首演示曲目开始"
+        )
+        let moreMenu = app.buttons["immersiveMoreMenu"]
+        XCTAssertTrue(moreMenu.waitForExistence(timeout: 8))
+        moreMenu.tap()
+
+        let nextAction = app.buttons["下一曲播放"]
+        XCTAssertTrue(
+            nextAction.waitForExistence(timeout: 4),
+            "三点菜单应显示可点击的下一曲动作"
+        )
+        nextAction.tap()
+
+        XCTAssertTrue(
+            app.staticTexts["UI Test Next Track"].waitForExistence(timeout: 5),
+            "点击下一曲动作后应立即切换到队列中的下一首"
+        )
+        XCTAssertFalse(
+            nextAction.exists,
+            "完成下一曲动作后系统操作菜单应自动收回"
+        )
     }
 
     @MainActor

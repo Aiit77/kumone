@@ -285,8 +285,12 @@ final class PlayerService: ObservableObject {
         let json = """
         {"id":15,"name":"UI Test Track","ar":[{"id":1,"name":"Kumone"}],"al":{"id":1,"name":"UI Test Album","picUrl":null},"dt":180000}
         """
-        guard let track = try? JSONDecoder().decode(Track.self, from: Data(json.utf8)) else { return }
-        queue = [track]
+        let nextJSON = """
+        {"id":16,"name":"UI Test Next Track","ar":[{"id":1,"name":"Kumone"}],"al":{"id":2,"name":"Kumone Test Album","picUrl":null},"dt":181000}
+        """
+        guard let track = try? JSONDecoder().decode(Track.self, from: Data(json.utf8)),
+              let nextTrack = try? JSONDecoder().decode(Track.self, from: Data(nextJSON.utf8)) else { return }
+        queue = [track, nextTrack]
         shuffledQueue = []
         playNextList = []
         currentIndex = 0
