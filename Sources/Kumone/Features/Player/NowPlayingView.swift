@@ -84,8 +84,18 @@ struct NowPlayingView: View {
         }
         #if os(iOS)
         .onAppear {
-            showLyricsOnMobile = settings.nowPlayingMode == .immersive
-            showQueueOnMobile = false
+            switch player.iosNowPlayingStartPanel {
+            case .lyrics:
+                showLyricsOnMobile = true
+                showQueueOnMobile = false
+            case .queue:
+                showLyricsOnMobile = false
+                showQueueOnMobile = true
+            case nil:
+                showLyricsOnMobile = settings.nowPlayingMode == .immersive
+                showQueueOnMobile = false
+            }
+            player.iosNowPlayingStartPanel = nil
         }
         .onChange(of: settings.nowPlayingMode) { _ in
             showLyricsOnMobile = settings.nowPlayingMode == .immersive

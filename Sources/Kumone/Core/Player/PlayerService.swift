@@ -108,6 +108,12 @@ enum RightPanel {
     case lyrics, queue
 }
 
+#if os(iOS)
+enum IOSNowPlayingStartPanel {
+    case lyrics, queue
+}
+#endif
+
 /// The playback engine: queue, shuffle/repeat, personal FM, URL resolution,
 /// lyrics, scrobbling. Modeled on YesPlayMusic's Player class, backed by AVPlayer.
 /// High-frequency playback position, isolated so per-tick updates only
@@ -161,6 +167,7 @@ final class PlayerService: ObservableObject {
             UserDefaults.standard.set(volume, forKey: "player.volume")
         }
     }
+    private var volumeBeforeMute: Float = 0.8
 
     @Published private(set) var isFMMode = false
     @Published private(set) var fmUpcoming: [Track] = []
@@ -170,6 +177,9 @@ final class PlayerService: ObservableObject {
     @Published private(set) var lyrics: ParsedLyrics?
     @Published var activePanel: RightPanel?
     @Published var showNowPlaying = false
+    #if os(iOS)
+    @Published var iosNowPlayingStartPanel: IOSNowPlayingStartPanel?
+    #endif
 
     /// The list the player is walking through (shuffled or ordered).
     var activeQueue: [Track] { shuffleEnabled ? shuffledQueue : queue }
@@ -358,6 +368,41 @@ final class PlayerService: ObservableObject {
 
     func cyclePlaybackRate() {
         playbackRate = playbackRate.next
+    }
+
+    var isMuted: Bool { volume <= 0.001 }
+
+    func toggleMute() {
+        if isMuted {
+            volume = max(volumeBeforeMute, 0.05)
+        } else {
+            volumeBeforeMute = volume
+            volume = 0
+        }
+    }
+
+    #if os(iOS)
+    func presentNowPlaying(startingWith panel: IOSNowPlayingStartPanel) {
+        iosNowPlayingStartPanel = panel
+        showNowPlaying = true
+    }
+    #endif
+
+    /// Stops playback and clears the currently presented mini-player surface.
+    func closeCurrentTrack() {
+        engine.pause()
+        isPlaying = false
+        isBuffering = false
+        currentTrack = nil
+        duration = 0
+        progress = 0
+        isScrubbing = false
+        showNowPlaying = false
+        activePanel = nil
+        #if os(iOS)
+        iosNowPlayingStartPanel = nil
+        #endif
+        NowPlayingManager.shared.clear()
     }
 
     private func resumePlayback() {

@@ -3,7 +3,7 @@ import SwiftUI
 import UIKit
 
 /// iOS 15 回退根容器。避免 NavigationStack、NavigationPath 与新式 Tab API，
-/// 同时维持音乐浏览、播放、设置、登录和更新检查等核心能力。
+/// 同时让播放器和胶囊导航共用稳定的底部安全区。
 public struct IOS15MainWindow: View {
     @StateObject private var player = PlayerService.shared
     @StateObject private var account = AccountStore.shared
@@ -24,8 +24,7 @@ public struct IOS15MainWindow: View {
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 bottomChrome
             }
-            // 只由 IOS15KeyboardState 处理当次应用内键盘帧，避免从其他 App
-            // 返回时 SwiftUI 继续沿用过期 keyboard-safe-area 导致播放器悬浮错位。
+            // 仅使用当前 App 实际收到的键盘帧，避免从其他 App 返回后保留旧布局。
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .environmentObject(player)
             .environmentObject(account)
@@ -100,13 +99,14 @@ public struct IOS15MainWindow: View {
         case 0:
             legacyNavigation { HomeView() }
         case 1:
-            legacyNavigation { IOS15ExplorePlaceholder() }
+            legacyNavigation { IOS15ExploreView() }
         case 2:
             legacyNavigation { FMView() }
         case 3:
+            // 保持 v0.3.7 搜索结构；其目的地式 NavigationLink 可在 iOS 15 使用。
             legacyNavigation { SearchView(query: "") }
         default:
-            legacyNavigation { IOS15LibraryView(showLogin: $showLogin, showSettings: $showSettings) }
+            legacyNavigation { IOS15CardLibraryView(showLogin: $showLogin, showSettings: $showSettings) }
         }
     }
 
@@ -122,8 +122,6 @@ public struct IOS15MainWindow: View {
         .padding(.horizontal, 12)
         .padding(.top, 8)
         .padding(.bottom, 6)
-        // 有效键盘出现时把播放控件整体上移；回到前台时状态会先归零，
-        // 因而不会再被外部 App 遗留的键盘 frame 顶起。
         .padding(.bottom, keyboard.overlap)
         .animation(AppAnimation.standard, value: player.hasCurrentTrack)
         .animation(AppAnimation.quick, value: keyboard.overlap)
@@ -151,132 +149,235 @@ public struct IOS15MainWindow: View {
     ]
 }
 
+/// 手机宽度将常用控件压缩为一行，宽屏在同一安全区内展示完整的横向控制分区。
 private struct IOS15MiniPlayerBar: View {
     @EnvironmentObject private var player: PlayerService
 
     var body: some View {
-        HStack(spacing: 6) {
-            Button { player.showNowPlaying = true } label: {
-                HStack(spacing: 9) {
-                    CachedAsyncImage(url: player.currentTrack?.album.picUrl?.resizedImageURL(96), animated: false)
-                        .frame(width: 36, height: 36)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .strokeBorder(.white.opacity(0.22), lineWidth: 0.5)
-                        }
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(player.currentTrack?.name ?? "")
-                            .font(.system(size: 13, weight: .bold))
-                            .lineLimit(1)
-                        Text(player.currentTrack?.artistNames ?? "")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+        GeometryReader { proxy in
+            Group {
+                if proxy.size.width >= 620 {
+                    wideContent
+                } else {
+                    compactContent
                 }
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("打开正在播放")
-
-            Button(action: player.cyclePlaybackRate) {
-                Text(player.playbackRate.displayName)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(Theme.accent)
-                    .frame(minWidth: 42, minHeight: 38)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.pressable)
-            .accessibilityLabel("倍速播放，当前 \(player.playbackRate.displayName)")
-
-            Button(action: player.togglePlayPause) {
-                Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 17, weight: .bold))
-                    .frame(width: 38, height: 38)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.pressable)
-            .accessibilityLabel(player.isPlaying ? "暂停" : "播放")
-
-            Button(action: player.next) {
-                Image(systemName: "forward.fill")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 38, height: 38)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.pressable)
-            .accessibilityLabel("下一首")
+            .frame(width: proxy.size.width, height: proxy.size.height)
         }
-        .padding(.leading, 10)
-        .padding(.trailing, 6)
-        .padding(.vertical, 6)
+        .frame(height: 74)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
         .background(.regularMaterial, in: Capsule(style: .continuous))
         .overlay {
             Capsule(style: .continuous)
                 .strokeBorder(.primary.opacity(0.08), lineWidth: 0.5)
         }
         .shadow(color: .black.opacity(0.12), radius: 10, y: 4)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("ios15MiniPlayer")
     }
-}
 
-private struct IOS15ExplorePlaceholder: View {
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "square.grid.2x2")
-                .font(.system(size: 44, weight: .light))
-                .foregroundStyle(Theme.accent)
-            Text("精选")
-                .font(.title2.weight(.bold))
-            Text("iOS 15 兼容模式保留了推荐、搜索、播放和个人设置；更多精选导航可在较新系统中使用。")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 30)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .navigationTitle("精选")
-    }
-}
-
-private struct IOS15LibraryView: View {
-    @Binding var showLogin: Bool
-    @Binding var showSettings: Bool
-    @EnvironmentObject private var account: AccountStore
-
-    var body: some View {
-        List {
-            Section {
-                if let profile = account.profile {
-                    HStack(spacing: 12) {
-                        CachedAsyncImage(url: profile.avatarUrl?.resizedImageURL(96), animated: false)
-                            .frame(width: 44, height: 44)
-                            .clipShape(Circle())
-                        Text(profile.nickname).font(.headline)
-                    }
-                } else {
-                    Button { showLogin = true } label: {
-                        Label("登录网易云音乐", systemImage: "person.crop.circle.badge.plus")
-                    }
-                }
+    private var compactContent: some View {
+        VStack(spacing: 1) {
+            HStack(spacing: 4) {
+                trackSummary
+                playbackRateButton
+                playPauseButton
+                nextButton
+                moreMenu
             }
+            IOS15MiniPlayerProgress()
+                .padding(.leading, 48)
+                .padding(.trailing, 8)
+        }
+    }
 
-            if account.hasAuthCookie {
-                Section("我的音乐") {
-                    Text("已登录，可在推荐、精选和搜索中浏览并播放音乐。")
-                        .font(.subheadline)
+    private var wideContent: some View {
+        HStack(spacing: 14) {
+            trackSummary
+                .frame(maxWidth: 250)
+            IOS15MiniPlayerProgress()
+                .frame(maxWidth: .infinity)
+            HStack(spacing: 2) {
+                playbackRateButton
+                previousButton
+                playPauseButton
+                nextButton
+                moreMenu
+            }
+        }
+    }
+
+    private var trackSummary: some View {
+        Button {
+            player.showNowPlaying = true
+        } label: {
+            HStack(spacing: 9) {
+                CachedAsyncImage(url: player.currentTrack?.album.picUrl?.resizedImageURL(96), animated: false)
+                    .frame(width: 42, height: 42)
+                    .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 9, style: .continuous)
+                            .strokeBorder(.white.opacity(0.22), lineWidth: 0.5)
+                    }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(player.currentTrack?.name ?? "")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                    Text(player.currentTrack?.artistNames ?? "")
+                        .font(.system(size: 10.5))
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("打开正在播放")
+        .accessibilityIdentifier("miniPlayerTrackSummary")
+    }
+
+    private var playbackRateButton: some View {
+        Button(action: player.cyclePlaybackRate) {
+            Text(player.playbackRate.displayName)
+                .font(.system(size: 17, weight: .heavy, design: .rounded))
+                .foregroundStyle(Theme.accent)
+                .frame(minWidth: 54, minHeight: 42)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable)
+        .accessibilityLabel("倍速播放")
+        .accessibilityValue(player.playbackRate.displayName)
+        .accessibilityIdentifier("miniPlayerPlaybackRateButton")
+    }
+
+    private var previousButton: some View {
+        Button(action: player.previous) {
+            Image(systemName: "backward.fill")
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(player.isFMMode ? .secondary.opacity(0.35) : .secondary)
+                .frame(width: 38, height: 42)
+        }
+        .buttonStyle(.pressable)
+        .disabled(player.isFMMode)
+        .accessibilityLabel("上一首")
+        .accessibilityIdentifier("miniPlayerPreviousButton")
+    }
+
+    private var playPauseButton: some View {
+        Button(action: player.togglePlayPause) {
+            Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(.primary)
+                .frame(width: 40, height: 42)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable)
+        .accessibilityLabel(player.isPlaying ? "暂停" : "播放")
+        .accessibilityIdentifier("miniPlayerPlayPauseButton")
+    }
+
+    private var nextButton: some View {
+        Button(action: player.next) {
+            Image(systemName: "forward.fill")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(.secondary)
+                .frame(width: 38, height: 42)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable)
+        .accessibilityLabel("下一首")
+        .accessibilityIdentifier("miniPlayerNextButton")
+    }
+
+    private var moreMenu: some View {
+        Menu {
+            Button(action: player.previous) {
+                Label("上一首", systemImage: "backward.fill")
+            }
+            .disabled(player.isFMMode)
+
+            Menu {
+                Button {
+                    if player.shuffleEnabled { player.toggleShuffle() }
+                    player.repeatMode = .off
+                } label: {
+                    Label("顺序播放", systemImage: "text.line.first.and.arrowtriangle.forward")
+                }
+                Button {
+                    if !player.shuffleEnabled { player.toggleShuffle() }
+                    player.repeatMode = .off
+                } label: {
+                    Label("随机播放", systemImage: "shuffle")
+                }
+                Button {
+                    if player.shuffleEnabled { player.toggleShuffle() }
+                    player.repeatMode = .all
+                } label: {
+                    Label("列表循环", systemImage: "repeat")
+                }
+                Button {
+                    if player.shuffleEnabled { player.toggleShuffle() }
+                    player.repeatMode = .one
+                } label: {
+                    Label("单曲循环", systemImage: "repeat.1")
+                }
+            } label: {
+                Label("播放模式", systemImage: player.repeatMode == .one ? "repeat.1" : "repeat")
             }
 
-            Section {
-                Button { showSettings = true } label: {
-                    Label("设置", systemImage: "gearshape")
-                }
+            Button {
+                player.presentNowPlaying(startingWith: .lyrics)
+            } label: {
+                Label("歌词", systemImage: "quote.bubble")
             }
+
+            Button {
+                player.presentNowPlaying(startingWith: .queue)
+            } label: {
+                Label("播放队列", systemImage: "list.bullet")
+            }
+
+            Button(action: player.toggleMute) {
+                Label(player.isMuted ? "取消静音" : "静音", systemImage: player.isMuted ? "speaker.slash" : "speaker.wave.2")
+            }
+
+            Divider()
+
+            Button(role: .destructive, action: player.closeCurrentTrack) {
+                Label("关闭播放器", systemImage: "xmark.circle")
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(.secondary)
+                .frame(width: 38, height: 42)
+                .contentShape(Rectangle())
         }
-        .navigationTitle("我的")
+        .buttonStyle(.pressable)
+        .accessibilityLabel("更多控制")
+        .accessibilityIdentifier("miniPlayerMoreMenu")
+    }
+}
+
+private struct IOS15MiniPlayerProgress: View {
+    @EnvironmentObject private var player: PlayerService
+
+    var body: some View {
+        Slider(
+            value: Binding(
+                get: { min(max(player.progress, 0), max(player.duration, 1)) },
+                set: { player.seek(to: $0) }
+            ),
+            in: 0...max(player.duration, 1)
+        )
+        .tint(Theme.accent)
+        .controlSize(.small)
+        .accessibilityLabel("播放进度")
+        .accessibilityValue("\(Int(player.progress.rounded())) 秒")
+        .accessibilityIdentifier("miniPlayerProgress")
     }
 }
 
