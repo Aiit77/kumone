@@ -425,12 +425,16 @@ private struct IOS15MiniPlayerBar: View {
 
 private struct IOS15MiniPlayerProgress: View {
     @EnvironmentObject private var player: PlayerService
+    /// `PlayerService.progress` proxies this separate ObservableObject. Observe it
+    /// directly so the mini-player redraws for AVPlayer time ticks without needing
+    /// a navigation change or slider interaction to invalidate the parent view.
+    @ObservedObject private var clock = PlayerService.shared.clock
 
     var body: some View {
         VStack(spacing: 0) {
             Slider(
                 value: Binding(
-                    get: { min(max(player.progress, 0), max(player.duration, 1)) },
+                    get: { min(max(clock.progress, 0), max(player.duration, 1)) },
                     set: { player.seek(to: $0) }
                 ),
                 in: 0...max(player.duration, 1)
@@ -438,11 +442,11 @@ private struct IOS15MiniPlayerProgress: View {
             .tint(Theme.accent)
             .controlSize(.small)
             .accessibilityLabel("播放进度")
-            .accessibilityValue("\(timeText(player.progress)) / \(timeText(player.duration))")
+            .accessibilityValue("\(timeText(clock.progress)) / \(timeText(player.duration))")
             .accessibilityIdentifier("miniPlayerProgress")
 
             HStack {
-                Text(timeText(player.progress))
+                Text(timeText(clock.progress))
                 Spacer(minLength: 8)
                 Text(timeText(player.duration))
             }
