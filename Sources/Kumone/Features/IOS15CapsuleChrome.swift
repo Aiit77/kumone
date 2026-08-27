@@ -211,9 +211,11 @@ struct IOS15LiquidGlassSearchButton: View {
                 .shadow(color: .white.opacity(colorScheme == .dark ? 0.04 : 0.22), radius: 2, y: -1)
                 .contentShape(Circle())
         }
-        .buttonStyle(IOS15CapsuleButtonStyle())
-        .frame(width: 64, height: 64)
-        .contentShape(Circle())
+        // 可见玻璃圆保持 56pt；外层提供更宽的矩形命中区，
+        // 让拇指从边缘落下时也能立即进入搜索，而不影响相邻主胶囊。
+        .buttonStyle(.plain)
+        .frame(width: 76, height: 72)
+        .contentShape(Rectangle())
         .accessibilityLabel("搜索")
         .accessibilityIdentifier("ios15LiquidGlassSearchButton")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
