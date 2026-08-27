@@ -212,6 +212,9 @@ final class PlayerService: ObservableObject {
 
     private let engine = AVPlayer()
     private var timeObserver: Any?
+    /// Lock-screen metadata does not need display-frame refreshes; keep it bounded
+    /// while the SwiftUI playback clock remains frame-accurate for lyrics and scrubbers.
+    private var lastSystemElapsedUpdate: TimeInterval = -Double.infinity
     private var endObserver: NSObjectProtocol?
     private var statusObservation: NSKeyValueObservation?
     private var resolveGeneration = 0
@@ -263,14 +266,26 @@ final class PlayerService: ObservableObject {
         }
         #endif
 
+        // Keep in-app transport controls and timestamped lyrics on the same
+        // AVPlayer clock at up to 120 Hz. SwiftUI coalesces this on the current
+        // display frame; buffering, seeking, and rate changes remain exact.
         timeObserver = engine.addPeriodicTimeObserver(
-            forInterval: CMTime(seconds: 0.2, preferredTimescale: 600), queue: .main
+            forInterval: CMTime(value: 1, timescale: 120), queue: .main
         ) { [weak self] time in
             MainActor.assumeIsolated {
                 guard let self, !self.isScrubbing else { return }
                 let seconds = time.seconds
-                if seconds.isFinite, abs(seconds - self.progress) > 0.05 {
+                guard seconds.isFinite else { return }
+
+                if abs(seconds - self.progress) > 0.001 {
                     self.progress = seconds
+                }
+
+                // MPNowPlayingInfoCenter extrapolates from elapsed time and rate.
+                // Retain its lightweight 5 Hz refresh rate instead of publishing it
+                // for every UI frame.
+                if abs(seconds - self.lastSystemElapsedUpdate) >= 0.2 {
+                    self.lastSystemElapsedUpdate = seconds
                     NowPlayingManager.shared.updateElapsed(
                         seconds,
                         rate: self.isPlaying ? Double(self.playbackRate.rawValue) : 0
@@ -495,6 +510,7 @@ final class PlayerService: ObservableObject {
 
     func seek(to seconds: TimeInterval) {
         progress = seconds
+        lastSystemElapsedUpdate = seconds
         engine.seek(to: CMTime(seconds: seconds, preferredTimescale: 600),
                     toleranceBefore: .zero, toleranceAfter: .zero)
         NowPlayingManager.shared.updateElapsed(

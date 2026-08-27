@@ -709,11 +709,13 @@ struct NowPlayingView: View {
                     )
                 )
                 .onChange(of: clock.progress) { _ in
-                    let index = lyrics.activeIndex(at: clock.progress + 0.2)
+                    let index = lyrics.activeIndex(at: clock.progress)
                     guard index != activeIndex else { return }
                     activeIndex = index
                     guard !isUserScrolling, let index else { return }
-                    withAnimation(.spring(response: 0.8, dampingFraction: 0.85)) {
+                    var transaction = Transaction()
+                    transaction.animation = nil
+                    withTransaction(transaction) {
                         proxy.scrollTo(index, anchor: .center)
                     }
                 }
@@ -776,7 +778,6 @@ struct NowPlayingView: View {
             .scaleEffect(isActive ? 1.02 : 1, anchor: .leading)
         }
         .buttonStyle(.plain)
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isActive)
     }
 }
 
@@ -808,11 +809,13 @@ private struct IOSImmersiveLyricsColumn: View {
                     .mask(edgeMask)
                     .accessibilityIdentifier("syncedLyricsScroll")
                     .onChange(of: clock.progress) { _ in
-                        let index = lyrics.activeIndex(at: clock.progress + 0.2)
+                        let index = lyrics.activeIndex(at: clock.progress)
                         guard index != activeIndex else { return }
                         activeIndex = index
                         guard !isUserScrolling, let index else { return }
-                        withAnimation(.timingCurve(0.22, 1, 0.36, 1, duration: 0.38)) {
+                        var transaction = Transaction()
+                        transaction.animation = nil
+                        withTransaction(transaction) {
                             proxy.scrollTo(index, anchor: .center)
                         }
                     }
@@ -897,11 +900,9 @@ private struct IOSImmersiveLyricsColumn: View {
             .contentShape(Rectangle())
             .scaleEffect(isActive ? 1.07 : 0.82, anchor: .leading)
         }
-        .buttonStyle(.plain)
-        .animation(.spring(response: 0.28, dampingFraction: 0.9), value: isActive)
+                .buttonStyle(.plain)
     }
 }
-
 // MARK: - Compact now-playing sections
 
 private enum ImmersiveArtworkTransition {
@@ -1451,7 +1452,7 @@ struct MiniLyricsView: View {
 
     private var lines: (previous: LyricLine?, current: LyricLine?, next: LyricLine?) {
         guard let lyrics = player.lyrics, !lyrics.isEmpty else { return (nil, nil, nil) }
-        guard let index = lyrics.activeIndex(at: clock.progress + 0.2) else {
+        guard let index = lyrics.activeIndex(at: clock.progress) else {
             return (nil, nil, lyrics.lines.first)
         }
         let all = lyrics.lines
@@ -1474,7 +1475,6 @@ struct MiniLyricsView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture(perform: onOpen)
-                .animation(.spring(response: 0.4, dampingFraction: 0.85), value: current?.id)
             } else {
                 Color.clear
             }
