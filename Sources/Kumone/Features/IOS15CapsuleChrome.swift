@@ -16,7 +16,6 @@ struct IOS15CapsuleTabBar: View {
     @Binding var selection: Int
 
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let contentHeight: CGFloat = 56
     private let innerInset: CGFloat = 4
@@ -51,7 +50,6 @@ struct IOS15CapsuleTabBar: View {
                             y: 3
                         )
                         .offset(x: CGFloat(selectedIndex) * itemWidth + innerInset)
-                        .animation(selectionAnimation, value: selection)
                 }
 
                 HStack(spacing: 0) {
@@ -123,14 +121,7 @@ struct IOS15CapsuleTabBar: View {
 
     private func select(_ item: Int) {
         guard selection != item else { return }
-        IOS15SelectionFeedback.perform()
-        withAnimation(selectionAnimation) {
-            selection = item
-        }
-    }
-
-    private var selectionAnimation: Animation? {
-        reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.82)
+        selection = item
     }
 
     private var selectionFill: LinearGradient {
@@ -176,7 +167,6 @@ struct IOS15LiquidGlassSearchButton: View {
     let action: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let contentSize: CGFloat = 56
 
@@ -216,7 +206,6 @@ struct IOS15LiquidGlassSearchButton: View {
                 .frame(width: 72, height: 72)
         }
         .frame(width: 72, height: 72)
-        .animation(reduceMotion ? nil : AppAnimation.standard, value: isSelected)
     }
 
     private var searchTint: LinearGradient {

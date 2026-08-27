@@ -193,15 +193,12 @@ public struct IOS15MainWindow: View {
     }
 
     private func selectTab(_ tab: Int) {
-        IOS15SelectionFeedback.perform()
-        withAnimation(AppAnimation.standard) {
-            if tab == 3 {
-                // 独立搜索入口无论当前是否已选中，都应回到搜索根页，
-                // 不能复用此前页面可能保留的详情导航状态。
-                searchRouteGeneration &+= 1
-            }
-            selectedTab = tab
+        if tab == 3 {
+            // 独立搜索入口无论当前是否已选中，都应回到搜索根页，
+            // 不能复用此前页面可能保留的详情导航状态。
+            searchRouteGeneration &+= 1
         }
+        selectedTab = tab
     }
 
     /// 搜索在参考图中是主胶囊右侧的独立玻璃入口，因此不参与主标签的等宽分区。
