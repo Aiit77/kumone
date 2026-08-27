@@ -17,9 +17,6 @@ public struct IOS15MainWindow: View {
     /// 搜索是独立玻璃入口；递增该值可以在重复点击时回到干净的搜索根视图，
     /// 避免旧 NavigationView 栈将用户留在歌单详情页。
     @State private var searchRouteGeneration = 0
-    /// 详情页由 NavigationView 原生栈管理；入栈时隐藏自定义底部 chrome，
-    /// 返回根页后自动恢复，避免遮挡歌单内容。
-    @State private var isDetailPresented = false
     @State private var showLogin = false
     @State private var showSettings = false
 
@@ -141,7 +138,7 @@ public struct IOS15MainWindow: View {
     private var bottomChrome: some View {
         // 搜索或其他文本输入激活键盘时，不将播放器和标签栏顶至键盘上方。
         // 键盘收起后由同一安全区恢复原有底部 chrome，避免出现双层导航。
-        if !keyboard.isVisible && !isDetailPresented {
+        if !keyboard.isVisible {
             VStack(spacing: 8) {
                 if player.hasCurrentTrack {
                     IOS15MiniPlayerBar()
@@ -190,7 +187,7 @@ public struct IOS15MainWindow: View {
     private func legacyNavigation<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         NavigationView {
             content()
-                .background(IOS15NavigationChromeObserver(isDetailPresented: $isDetailPresented))
+                .background(IOS15DisableInteractivePopGesture())
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
