@@ -17,13 +17,13 @@ final class KumoneIOSUITests: XCTestCase {
         XCTAssertTrue(search.waitForExistence(timeout: 8))
         XCTAssertGreaterThanOrEqual(
             search.frame.width,
-            56,
-            "独立搜索玻璃入口应保留至少 56pt 的横向触控范围"
+            72,
+            "独立搜索入口应提供扩展后的横向原生触控范围"
         )
         XCTAssertGreaterThanOrEqual(
             search.frame.height,
-            56,
-            "独立搜索玻璃入口应保留至少 56pt 的纵向触控范围"
+            72,
+            "独立搜索入口应提供扩展后的纵向原生触控范围"
         )
         XCTAssertGreaterThan(
             search.frame.minX - library.frame.maxX,
@@ -31,10 +31,10 @@ final class KumoneIOSUITests: XCTestCase {
             "搜索入口应与主胶囊导航保留独立间距，避免命中区重叠"
         )
 
-        search.tap()
-        XCTAssertTrue(search.isSelected, "点击独立搜索入口后应切换至搜索标签")
-        search.tap()
-        XCTAssertTrue(search.isSelected, "重复点击搜索入口仍应停留在干净的搜索根页")
+        search.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.50)).tap()
+        XCTAssertTrue(search.isSelected, "点击扩展命中区左缘后应立即切换至搜索标签")
+        search.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.50)).tap()
+        XCTAssertTrue(search.isSelected, "点击扩展命中区右缘后仍应停留在干净的搜索根页")
     }
 
     @MainActor

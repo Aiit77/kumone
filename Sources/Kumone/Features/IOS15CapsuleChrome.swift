@@ -181,7 +181,7 @@ struct IOS15LiquidGlassSearchButton: View {
     private let contentSize: CGFloat = 56
 
     var body: some View {
-        Button(action: action) {
+        ZStack {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 25, weight: .bold))
                 .foregroundStyle(isSelected ? Theme.accent : .primary.opacity(colorScheme == .dark ? 0.92 : 0.84))
@@ -209,14 +209,13 @@ struct IOS15LiquidGlassSearchButton: View {
                 }
                 .shadow(color: .black.opacity(colorScheme == .dark ? 0.32 : 0.14), radius: 10, y: 4)
                 .shadow(color: .white.opacity(colorScheme == .dark ? 0.04 : 0.22), radius: 2, y: -1)
-                .contentShape(Circle())
+
+            // 使用 UIKit 原生 touchUpInside 命中层，而非依赖材质视图的 SwiftUI
+            // 命中测试。透明层覆盖完整 72×72pt 范围，单击即可进入搜索。
+            IOS15NativeSearchTapControl(action: action, isSelected: isSelected)
+                .frame(width: 72, height: 72)
         }
-        .buttonStyle(IOS15CapsuleButtonStyle())
-        .frame(width: 64, height: 64)
-        .contentShape(Circle())
-        .accessibilityLabel("搜索")
-        .accessibilityIdentifier("ios15LiquidGlassSearchButton")
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .frame(width: 72, height: 72)
         .animation(reduceMotion ? nil : AppAnimation.standard, value: isSelected)
     }
 
@@ -317,6 +316,46 @@ struct IOS15CapsuleSegmentedControl: View {
 
     private var selectionAnimation: Animation? {
         reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.84)
+    }
+}
+
+/// 将搜索入口的完整矩形命中范围交给 UIKit 原生 `touchUpInside` 处理。
+/// 不使用自定义拖拽或同时手势，避免与底部安全区及相邻胶囊发生竞争。
+private struct IOS15NativeSearchTapControl: UIViewRepresentable {
+    let action: () -> Void
+    let isSelected: Bool
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(action: action)
+    }
+
+    func makeUIView(context: Context) -> UIControl {
+        let control = UIControl(frame: .zero)
+        control.backgroundColor = .clear
+        control.isExclusiveTouch = true
+        control.isAccessibilityElement = true
+        control.accessibilityLabel = "搜索"
+        control.accessibilityIdentifier = "ios15LiquidGlassSearchButton"
+        control.addTarget(context.coordinator, action: #selector(Coordinator.performAction), for: .touchUpInside)
+        return control
+    }
+
+    func updateUIView(_ uiView: UIControl, context: Context) {
+        context.coordinator.action = action
+        uiView.accessibilityTraits = isSelected ? [.button, .selected] : [.button]
+        uiView.accessibilityValue = isSelected ? "已选中" : "未选中"
+    }
+
+    final class Coordinator: NSObject {
+        var action: () -> Void
+
+        init(action: @escaping () -> Void) {
+            self.action = action
+        }
+
+        @objc func performAction() {
+            action()
+        }
     }
 }
 
