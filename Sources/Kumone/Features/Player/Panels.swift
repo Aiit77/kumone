@@ -70,13 +70,11 @@ struct LyricsPanel: View {
                     .padding(.horizontal, 20)
                 }
                 .onChange(of: clock.progress) { _ in
-                    let index = lyrics.activeIndex(at: clock.progress)
+                    let index = lyrics.activeIndex(at: clock.progress + 0.2)
                     guard index != activeIndex else { return }
                     activeIndex = index
                     guard !isUserScrolling, let index else { return }
-                    var transaction = Transaction()
-                    transaction.animation = nil
-                    withTransaction(transaction) {
+                    withAnimation(.spring(response: 0.7, dampingFraction: 0.85)) {
                         proxy.scrollTo(index, anchor: .center)
                     }
                 }
@@ -137,6 +135,7 @@ struct LyricsPanel: View {
             .blur(radius: isActive ? 0 : 0.3)
         }
         .buttonStyle(.plain)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isActive)
     }
 }
 

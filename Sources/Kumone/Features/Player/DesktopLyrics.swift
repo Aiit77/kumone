@@ -124,15 +124,15 @@ private struct DesktopLyricsBox: View {
     private var currentLine: LyricLine? {
         guard player.isPlaying || clock.progress > 0,
               let lyrics = player.lyrics, !lyrics.isEmpty,
-              let index = lyrics.activeIndex(at: clock.progress) else { return nil }
+              let index = lyrics.activeIndex(at: clock.progress + 0.2) else { return nil }
         return lyrics.lines[index]
     }
 
     var body: some View {
         Group {
             if let line = currentLine, !line.text.isEmpty {
-                // The box stays put and the text switches on the playback-clock
-                // update so no presentation animation lags the lyric timestamp.
+                // The box itself stays put; only the text crossfades and the
+                // capsule width eases to the new line's size.
                 VStack(spacing: 5) {
                     Text(line.text)
                         .font(.system(size: 26, weight: .bold, design: .rounded))
@@ -162,6 +162,8 @@ private struct DesktopLyricsBox: View {
                 .transition(.opacity)
             }
         }
+        .animation(.easeInOut(duration: 0.3), value: currentLine?.id)
+        .animation(.easeInOut(duration: 0.25), value: currentLine == nil)
         .fixedSize()
     }
 }
